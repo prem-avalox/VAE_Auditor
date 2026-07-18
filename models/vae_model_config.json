@@ -1,0 +1,12 @@
+{
+  "input_dim": 68,
+  "latent_dim": 8,
+  "epochs": 50,
+  "batch_size": 128,
+  "learning_rate": 0.001,
+  "beta": 0.001,
+  "seed": 42,
+  "architecture": "input-64-32-(mu,logvar)-latent-32-64-input",
+  "training_source": "data/processed/train_tensor.pt",
+  "scoring": "deterministic_mse_using_latent_mu"
+}
