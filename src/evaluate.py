@@ -20,12 +20,18 @@ try:
 except ImportError:
     HAS_MATPLOTLIB = False
 
+import argparse
+import json
 import numpy as np
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REPORTS_DIR = PROJECT_ROOT / "reports"
 ERRORS_PATH = REPORTS_DIR / "reconstruction_errors.csv"
 PLOT_PATH = REPORTS_DIR / "distribucion_error_reconstruccion.png"
+EVAL_CSV_PATH = REPORTS_DIR / "evaluacion_transacciones.csv"
+THRESHOLDS_JSON_PATH = REPORTS_DIR / "umbral_severidad.json"
+METRICS_JSON_PATH = REPORTS_DIR / "metricas_evaluacion.json"
+REPORT_MD_PATH = REPORTS_DIR / "parte4_evaluacion.md"
 
 REQUIRED_COLUMNS = {
     "id_transaccion",
@@ -186,22 +192,127 @@ def make_plot(df_scored: pd.DataFrame, thresholds: dict) -> None:
     plt.close(fig)
     print(f"Grafico guardado en: {PLOT_PATH}")
 
-if __name__ == "__main__":
+
+def build_markdown_report(thresholds: dict, val_metrics: dict, test_metrics: dict, gap: dict) -> str:
+    """Arma el reporte reports/parte4_evaluacion.md con los resultados
+    ya calculados, siguiendo el mismo estilo que parte3_modelo_vae.md."""
+
+    def cm_table(m: dict) -> str:
+        cm = m["matriz_confusion"]
+        return (
+            "| | Predicho normal | Predicho anomalo |\n"
+            "| --- | ---: | ---: |\n"
+            f"| **Real normal** | {cm['verdaderos_negativos']} (VN) | {cm['falsos_positivos']} (FP) |\n"
+            f"| **Real anomalo** | {cm['falsos_negativos']} (FN) | {cm['verdaderos_positivos']} (VP) |\n"
+        )
+
+    return f"""# Parte 4 - Evaluacion
+
+## Objetivo
+
+Convertir el error de reconstruccion del VAE (parte 3) en un umbral de
+anomalia accionable, con severidad graduada, metricas de clasificacion y una
+estimacion del monto en riesgo detectado.
+
+## Entrada
+
+Este modulo lee exclusivamente `reports/reconstruction_errors.csv`, generado
+por `src/train_vae.py` (parte 3). No recalcula el error de reconstruccion ni
+vuelve a tocar el modelo VAE.
+
+## Calibracion del umbral (sin fuga de datos)
+
+Los 3 umbrales se calibran usando unicamente las transacciones normales
+(es_anomalia == 0) del split de validacion
+({thresholds['n_transacciones_calibracion']} transacciones). El split de
+prueba nunca se usa para calibrar, solo para reportar metricas finales una
+unica vez.
+
+| Severidad | Percentil | Umbral (MSE) |
+| --- | ---: | ---: |
+| Baja | P{thresholds['percentiles_usados']['baja']} | {thresholds['umbral_baja']:.6f} |
+| Media | P{thresholds['percentiles_usados']['media']} | {thresholds['umbral_media']:.6f} |
+| Alta | P{thresholds['percentiles_usados']['alta']} | {thresholds['umbral_alta']:.6f} |
+
+## Metricas - split de prueba (evaluacion final)
+
+- Precision: {test_metrics['precision']:.4f}
+- Recall: {test_metrics['recall']:.4f}
+- F1-score: {test_metrics['f1_score']:.4f}
+
+{cm_table(test_metrics)}
+
+## Monto en riesgo (split de prueba)
+
+- Monto total en riesgo: ${test_metrics['monto_total_en_riesgo']:,.2f} ({test_metrics['pct_monto_en_riesgo']:.2f}% del split)
+- Monto en riesgo confirmado: ${test_metrics['monto_en_riesgo_confirmado']:,.2f}
+
+## Comparacion de error normal vs. anomalo
+
+Una transaccion anomala tiene, en promedio, un error de reconstruccion
+{gap['veces_mas_alto']} veces mas alto que una transaccion normal
+({gap['error_promedio_anomalo']:.6f} vs. {gap['error_promedio_normal']:.6f}).
+
+## Artefactos generados
+
+| Archivo | Contenido |
+| --- | --- |
+| `reports/evaluacion_transacciones.csv` | Severidad y prediccion por transaccion |
+| `reports/umbral_severidad.json` | Los 3 umbrales y su procedencia |
+| `reports/metricas_evaluacion.json` | Metricas por split |
+| `reports/distribucion_error_reconstruccion.png` | Histograma del error con umbrales |
+
+## Contrato con la parte 5
+
+La parte 5 puede llamar directamente a `classify_transaction()` para evaluar
+una transaccion nueva en tiempo real, cargando los umbrales desde
+`reports/umbral_severidad.json`, o usar `reports/evaluacion_transacciones.csv`
+como fuente de datos ya evaluados para poblar la tabla y el dashboard.
+
+## Ejecucion
+
+```bash
+python src/evaluate.py
+```
+"""
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Evaluacion del VAE: umbral, severidad y metricas.")
+    parser.add_argument("--low-percentile", type=float, default=DEFAULT_LOW_PERCENTILE)
+    parser.add_argument("--medium-percentile", type=float, default=DEFAULT_MEDIUM_PERCENTILE)
+    parser.add_argument("--high-percentile", type=float, default=DEFAULT_HIGH_PERCENTILE)
+    args = parser.parse_args()
+
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+
     df = load_errors()
-    print(f"Filas cargadas: {len(df)}")
+    thresholds = calibrate_thresholds(df, args.low_percentile, args.medium_percentile, args.high_percentile)
 
-    thresholds = calibrate_thresholds(
-        df, DEFAULT_LOW_PERCENTILE, DEFAULT_MEDIUM_PERCENTILE, DEFAULT_HIGH_PERCENTILE
-    )
-    print("\nUmbrales calibrados:")
-    print(thresholds)
-
+    val_metrics, val_scored = evaluate_split(df, "validacion", thresholds)
     test_metrics, test_scored = evaluate_split(df, "prueba", thresholds)
-    print("\nMetricas - split de prueba:")
-    print(test_metrics)
-
     gap = compute_error_gap(df, "prueba")
-    print("\nComparacion de error normal vs. anomalo:")
-    print(gap)
+
+    scored_all = pd.concat([val_scored, test_scored], ignore_index=True).sort_values("id_transaccion")
+    scored_all.to_csv(EVAL_CSV_PATH, index=False)
+
+    THRESHOLDS_JSON_PATH.write_text(json.dumps(thresholds, indent=2, ensure_ascii=False), encoding="utf-8")
+    METRICS_JSON_PATH.write_text(
+        json.dumps({"validacion": val_metrics, "prueba": test_metrics}, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
 
     make_plot(test_scored, thresholds)
+
+    REPORT_MD_PATH.write_text(build_markdown_report(thresholds, val_metrics, test_metrics, gap), encoding="utf-8")
+
+    print("\nUmbrales calibrados:")
+    print(json.dumps(thresholds, indent=2, ensure_ascii=False))
+    print("\nMetricas - split de prueba:")
+    print(json.dumps(test_metrics, indent=2, ensure_ascii=False))
+    print("\nComparacion de error normal vs. anomalo:")
+    print(json.dumps(gap, indent=2, ensure_ascii=False))
+    print(f"\nArtefactos escritos en: {REPORTS_DIR}")
+
+if __name__ == "__main__":
+    main()

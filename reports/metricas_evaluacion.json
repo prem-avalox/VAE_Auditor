@@ -1,0 +1,52 @@
+{
+  "validacion": {
+    "split": "validacion",
+    "n_transacciones": 2251,
+    "n_predichas_anomalas": 702,
+    "n_reales_anomalas": 649,
+    "precision": 0.8846,
+    "recall": 0.9569,
+    "f1_score": 0.9193,
+    "matriz_confusion": {
+      "verdaderos_negativos": 1521,
+      "falsos_positivos": 81,
+      "falsos_negativos": 28,
+      "verdaderos_positivos": 621
+    },
+    "monto_total_split": 63695.62,
+    "monto_total_en_riesgo": 45700.92,
+    "monto_en_riesgo_confirmado": 44662.78,
+    "pct_monto_en_riesgo": 71.75,
+    "distribucion_severidad": {
+      "normal": 1549,
+      "alta": 464,
+      "media": 123,
+      "baja": 115
+    }
+  },
+  "prueba": {
+    "split": "prueba",
+    "n_transacciones": 2707,
+    "n_predichas_anomalas": 1180,
+    "n_reales_anomalas": 1151,
+    "precision": 0.9322,
+    "recall": 0.9557,
+    "f1_score": 0.9438,
+    "matriz_confusion": {
+      "verdaderos_negativos": 1476,
+      "falsos_positivos": 80,
+      "falsos_negativos": 51,
+      "verdaderos_positivos": 1100
+    },
+    "monto_total_split": 104400.31,
+    "monto_total_en_riesgo": 86964.11,
+    "monto_en_riesgo_confirmado": 85861.54,
+    "pct_monto_en_riesgo": 83.3,
+    "distribucion_severidad": {
+      "normal": 1527,
+      "alta": 817,
+      "baja": 189,
+      "media": 174
+    }
+  }
+}

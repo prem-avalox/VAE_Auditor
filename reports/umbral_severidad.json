@@ -1,0 +1,12 @@
+{
+  "umbral_baja": 0.06347260179999999,
+  "umbral_media": 0.0826022143,
+  "umbral_alta": 0.10612288443500192,
+  "percentiles_usados": {
+    "baja": 95.0,
+    "media": 99.0,
+    "alta": 99.9
+  },
+  "n_transacciones_calibracion": 1602,
+  "fuente_calibracion": "validacion (solo transacciones normales, es_anomalia == 0)"
+}
