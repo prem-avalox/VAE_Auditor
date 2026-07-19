@@ -6,10 +6,14 @@ en umbrales de severidad, metricas de clasificacion y monto en riesgo.
 
 from __future__ import annotations
 
+import argparse
+import json
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score
+
 try:
     import matplotlib
 
@@ -19,10 +23,6 @@ try:
     HAS_MATPLOTLIB = True
 except ImportError:
     HAS_MATPLOTLIB = False
-
-import argparse
-import json
-import numpy as np
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REPORTS_DIR = PROJECT_ROOT / "reports"
@@ -59,7 +59,9 @@ def load_errors() -> pd.DataFrame:
     return df
 
 
-def calibrate_thresholds(df: pd.DataFrame, low_pct: float, medium_pct: float, high_pct: float) -> dict:
+def calibrate_thresholds(
+    df: pd.DataFrame, low_pct: float, medium_pct: float, high_pct: float
+) -> dict:
     """Calibra los 3 umbrales de severidad usando solo transacciones
     normales del split de validacion (nunca el split de prueba)."""
     val_normal = df[(df["split"] == "validacion") & (df["es_anomalia"] == 0)]
@@ -87,7 +89,9 @@ def assign_severity(error: float, thresholds: dict) -> str:
     return "alta"
 
 
-def classify_transaction(reconstruction_error: float, thresholds: dict, monto: float | None = None) -> dict:
+def classify_transaction(
+    reconstruction_error: float, thresholds: dict, monto: float | None = None
+) -> dict:
     """Punto de entrada para la parte 5: clasifica UNA transaccion nueva
     a partir de su error de reconstruccion (ya calculado por la parte 3)
     y los umbrales ya calibrados (ver reports/umbral_severidad.json)."""
@@ -102,11 +106,15 @@ def classify_transaction(reconstruction_error: float, thresholds: dict, monto: f
     return resultado
 
 
-def evaluate_split(df: pd.DataFrame, split_name: str, thresholds: dict) -> tuple[dict, pd.DataFrame]:
+def evaluate_split(
+    df: pd.DataFrame, split_name: str, thresholds: dict
+) -> tuple[dict, pd.DataFrame]:
     """Aplica los umbrales a todas las transacciones de un split y calcula
     precision, recall, F1, matriz de confusion y monto en riesgo."""
     subset = df[df["split"] == split_name].copy()
-    subset["severidad"] = subset["reconstruction_error"].apply(lambda e: assign_severity(e, thresholds))
+    subset["severidad"] = subset["reconstruction_error"].apply(
+        lambda e: assign_severity(e, thresholds)
+    )
     subset["prediccion_anomalia"] = (subset["severidad"] != "normal").astype(int)
 
     y_true = subset["es_anomalia"].to_numpy()
@@ -117,9 +125,10 @@ def evaluate_split(df: pd.DataFrame, split_name: str, thresholds: dict) -> tuple
     f1 = f1_score(y_true, y_pred, zero_division=0)
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
 
-    monto_en_riesgo = float(subset.loc[subset["prediccion_anomalia"] == 1, "monto_final"].sum())
+    es_prediccion_positiva = subset["prediccion_anomalia"] == 1
+    monto_en_riesgo = float(subset.loc[es_prediccion_positiva, "monto_final"].sum())
     monto_en_riesgo_confirmado = float(
-        subset.loc[(subset["prediccion_anomalia"] == 1) & (subset["es_anomalia"] == 1), "monto_final"].sum()
+        subset.loc[es_prediccion_positiva & (subset["es_anomalia"] == 1), "monto_final"].sum()
     )
     monto_total_split = float(subset["monto_final"].sum())
 
@@ -140,7 +149,9 @@ def evaluate_split(df: pd.DataFrame, split_name: str, thresholds: dict) -> tuple
         "monto_total_split": round(monto_total_split, 2),
         "monto_total_en_riesgo": round(monto_en_riesgo, 2),
         "monto_en_riesgo_confirmado": round(monto_en_riesgo_confirmado, 2),
-        "pct_monto_en_riesgo": round(100 * monto_en_riesgo / monto_total_split, 2) if monto_total_split else 0.0,
+        "pct_monto_en_riesgo": (
+            round(100 * monto_en_riesgo / monto_total_split, 2) if monto_total_split else 0.0
+        ),
         "distribucion_severidad": subset["severidad"].value_counts().to_dict(),
     }
     return metrics, subset
@@ -193,7 +204,9 @@ def make_plot(df_scored: pd.DataFrame, thresholds: dict) -> None:
     print(f"Grafico guardado en: {PLOT_PATH}")
 
 
-def build_markdown_report(thresholds: dict, val_metrics: dict, test_metrics: dict, gap: dict) -> str:
+def build_markdown_report(
+    thresholds: dict, val_metrics: dict, test_metrics: dict, gap: dict
+) -> str:
     """Arma el reporte reports/parte4_evaluacion.md con los resultados
     ya calculados, siguiendo el mismo estilo que parte3_modelo_vae.md."""
 
@@ -202,8 +215,10 @@ def build_markdown_report(thresholds: dict, val_metrics: dict, test_metrics: dic
         return (
             "| | Predicho normal | Predicho anomalo |\n"
             "| --- | ---: | ---: |\n"
-            f"| **Real normal** | {cm['verdaderos_negativos']} (VN) | {cm['falsos_positivos']} (FP) |\n"
-            f"| **Real anomalo** | {cm['falsos_negativos']} (FN) | {cm['verdaderos_positivos']} (VP) |\n"
+            f"| **Real normal** | {cm['verdaderos_negativos']} (VN) "
+            f"| {cm['falsos_positivos']} (FP) |\n"
+            f"| **Real anomalo** | {cm['falsos_negativos']} (FN) "
+            f"| {cm['verdaderos_positivos']} (VP) |\n"
         )
 
     return f"""# Parte 4 - Evaluacion
@@ -234,6 +249,14 @@ unica vez.
 | Media | P{thresholds['percentiles_usados']['media']} | {thresholds['umbral_media']:.6f} |
 | Alta | P{thresholds['percentiles_usados']['alta']} | {thresholds['umbral_alta']:.6f} |
 
+## Metricas - split de validacion (referencial)
+
+- Precision: {val_metrics['precision']:.4f}
+- Recall: {val_metrics['recall']:.4f}
+- F1-score: {val_metrics['f1_score']:.4f}
+
+{cm_table(val_metrics)}
+
 ## Metricas - split de prueba (evaluacion final)
 
 - Precision: {test_metrics['precision']:.4f}
@@ -244,7 +267,8 @@ unica vez.
 
 ## Monto en riesgo (split de prueba)
 
-- Monto total en riesgo: ${test_metrics['monto_total_en_riesgo']:,.2f} ({test_metrics['pct_monto_en_riesgo']:.2f}% del split)
+- Monto total en riesgo: ${test_metrics['monto_total_en_riesgo']:,.2f}
+  ({test_metrics['pct_monto_en_riesgo']:.2f}% del split)
 - Monto en riesgo confirmado: ${test_metrics['monto_en_riesgo_confirmado']:,.2f}
 
 ## Comparacion de error normal vs. anomalo
@@ -278,7 +302,11 @@ python src/evaluate.py
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Evaluacion del VAE: umbral, severidad y metricas.")
+    """Orquesta la parte 4 completa: calibra umbrales, evalua ambos splits,
+    calcula el gap de error, y escribe todos los artefactos en reports/."""
+    parser = argparse.ArgumentParser(
+        description="Evaluacion del VAE: umbral, severidad y metricas."
+    )
     parser.add_argument("--low-percentile", type=float, default=DEFAULT_LOW_PERCENTILE)
     parser.add_argument("--medium-percentile", type=float, default=DEFAULT_MEDIUM_PERCENTILE)
     parser.add_argument("--high-percentile", type=float, default=DEFAULT_HIGH_PERCENTILE)
@@ -287,24 +315,31 @@ def main() -> None:
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
     df = load_errors()
-    thresholds = calibrate_thresholds(df, args.low_percentile, args.medium_percentile, args.high_percentile)
+    thresholds = calibrate_thresholds(
+        df, args.low_percentile, args.medium_percentile, args.high_percentile
+    )
 
     val_metrics, val_scored = evaluate_split(df, "validacion", thresholds)
     test_metrics, test_scored = evaluate_split(df, "prueba", thresholds)
     gap = compute_error_gap(df, "prueba")
 
-    scored_all = pd.concat([val_scored, test_scored], ignore_index=True).sort_values("id_transaccion")
+    scored_all = pd.concat([val_scored, test_scored], ignore_index=True)
+    scored_all = scored_all.sort_values("id_transaccion")
     scored_all.to_csv(EVAL_CSV_PATH, index=False)
 
-    THRESHOLDS_JSON_PATH.write_text(json.dumps(thresholds, indent=2, ensure_ascii=False), encoding="utf-8")
+    THRESHOLDS_JSON_PATH.write_text(
+        json.dumps(thresholds, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    metrics_payload = {"validacion": val_metrics, "prueba": test_metrics}
     METRICS_JSON_PATH.write_text(
-        json.dumps({"validacion": val_metrics, "prueba": test_metrics}, indent=2, ensure_ascii=False),
+        json.dumps(metrics_payload, indent=2, ensure_ascii=False),
         encoding="utf-8",
     )
 
     make_plot(test_scored, thresholds)
 
-    REPORT_MD_PATH.write_text(build_markdown_report(thresholds, val_metrics, test_metrics, gap), encoding="utf-8")
+    report = build_markdown_report(thresholds, val_metrics, test_metrics, gap)
+    REPORT_MD_PATH.write_text(report, encoding="utf-8")
 
     print("\nUmbrales calibrados:")
     print(json.dumps(thresholds, indent=2, ensure_ascii=False))
@@ -314,5 +349,7 @@ def main() -> None:
     print(json.dumps(gap, indent=2, ensure_ascii=False))
     print(f"\nArtefactos escritos en: {REPORTS_DIR}")
 
+
 if __name__ == "__main__":
     main()
+    
