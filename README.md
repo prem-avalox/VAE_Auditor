@@ -108,3 +108,37 @@ Salidas:
 
 La explicacion tecnica y el contrato con la parte de evaluacion estan en
 `reports/parte3_modelo_vae.md`.
+
+## Parte 4 - Evaluacion
+
+Toma el error de reconstruccion generado en la parte 3 y lo convierte en
+umbral de anomalia, severidad, metricas de clasificacion y monto en riesgo.
+Debe ejecutarse despues de `src/train_vae.py`. Desde la raiz del repositorio:
+
+```bash
+python src/evaluate.py
+```
+
+Los umbrales se calibran exclusivamente con las transacciones normales del
+split de validacion; el split de prueba se usa una unica vez para reportar
+las metricas finales, evitando fuga de datos.
+
+Salidas:
+
+- `reports/evaluacion_transacciones.csv`: severidad y prediccion por
+  transaccion (validacion + prueba).
+- `reports/umbral_severidad.json`: los 3 umbrales de severidad y su
+  procedencia.
+- `reports/metricas_evaluacion.json`: precision, recall, F1 y matriz de
+  confusion por split, y monto en riesgo.
+- `reports/distribucion_error_reconstruccion.png`: histograma del error,
+  normal vs. anomalo, con los umbrales marcados.
+
+Resultados actuales (split de prueba): precision 0.9322, recall 0.9557,
+F1 0.9438, monto total en riesgo $86,964.11.
+
+`src/evaluate.py` tambien expone `classify_transaction()`, para que la parte
+5 clasifique una transaccion nueva en tiempo real cargando los umbrales ya
+calibrados desde `reports/umbral_severidad.json`, sin recalibrar nada.
+
+La explicacion tecnica completa esta en `reports/parte4_evaluacion.md`.
