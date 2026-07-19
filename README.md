@@ -83,3 +83,28 @@ python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 ```
+
+## Parte 3 - Entrenar el VAE
+
+El preprocesamiento debe ejecutarse primero para generar los tensores. Luego,
+desde la raiz del repositorio:
+
+```bash
+python src/train_vae.py
+```
+
+El entrenamiento usa exclusivamente `data/processed/train_tensor.pt` y valida
+contra el CSV que sus 7.042 filas correspondan a `train_normal` y que ninguna
+sea anomala. Los valores predeterminados son 50 epocas, batch de 128, learning
+rate de 0.001, espacio latente de 8 dimensiones y beta de 0.001.
+
+Salidas:
+
+- `models/vae_model.pt`: pesos entrenados.
+- `models/vae_model_config.json`: configuracion necesaria para recargarlo.
+- `reports/vae_training_history.csv`: perdida por epoca.
+- `reports/reconstruction_errors.csv`: MSE determinista por transaccion de
+  validacion y prueba.
+
+La explicacion tecnica y el contrato con la parte de evaluacion estan en
+`reports/parte3_modelo_vae.md`.
