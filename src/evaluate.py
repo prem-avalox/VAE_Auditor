@@ -10,6 +10,8 @@ from pathlib import Path
 
 import pandas as pd
 
+import numpy as np
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REPORTS_DIR = PROJECT_ROOT / "reports"
 ERRORS_PATH = REPORTS_DIR / "reconstruction_errors.csv"
@@ -23,6 +25,9 @@ REQUIRED_COLUMNS = {
     "reconstruction_error",
 }
 
+DEFAULT_LOW_PERCENTILE = 95.0
+DEFAULT_MEDIUM_PERCENTILE = 99.0
+DEFAULT_HIGH_PERCENTILE = 99.9
 
 def load_errors() -> pd.DataFrame:
     """Carga el CSV de errores de reconstruccion generado por la parte 3."""
@@ -37,7 +42,29 @@ def load_errors() -> pd.DataFrame:
     return df
 
 
+def calibrate_thresholds(df: pd.DataFrame, low_pct: float, medium_pct: float, high_pct: float) -> dict:
+    """Calibra los 3 umbrales de severidad usando solo transacciones
+    normales del split de validacion (nunca el split de prueba)."""
+    val_normal = df[(df["split"] == "validacion") & (df["es_anomalia"] == 0)]
+    if val_normal.empty:
+        raise ValueError("No hay transacciones normales en el split de validacion.")
+
+    errors = val_normal["reconstruction_error"].to_numpy()
+    return {
+        "umbral_baja": float(np.percentile(errors, low_pct)),
+        "umbral_media": float(np.percentile(errors, medium_pct)),
+        "umbral_alta": float(np.percentile(errors, high_pct)),
+        "percentiles_usados": {"baja": low_pct, "media": medium_pct, "alta": high_pct},
+        "n_transacciones_calibracion": int(len(val_normal)),
+        "fuente_calibracion": "validacion (solo transacciones normales, es_anomalia == 0)",
+    }
+
 if __name__ == "__main__":
     df = load_errors()
     print(f"Filas cargadas: {len(df)}")
-    print(df.head(3))
+
+    thresholds = calibrate_thresholds(
+        df, DEFAULT_LOW_PERCENTILE, DEFAULT_MEDIUM_PERCENTILE, DEFAULT_HIGH_PERCENTILE
+    )
+    print("\nUmbrales calibrados:")
+    print(thresholds)
