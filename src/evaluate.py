@@ -129,6 +129,21 @@ def evaluate_split(df: pd.DataFrame, split_name: str, thresholds: dict) -> tuple
     }
     return metrics, subset
 
+
+def compute_error_gap(df: pd.DataFrame, split_name: str) -> dict:
+    """Compara el error promedio de transacciones normales vs. anomalas.
+    Util como dato de impacto para la presentacion (no afecta el umbral)."""
+    subset = df[df["split"] == split_name]
+    error_normal = subset.loc[subset["es_anomalia"] == 0, "reconstruction_error"].mean()
+    error_anomalo = subset.loc[subset["es_anomalia"] == 1, "reconstruction_error"].mean()
+
+    return {
+        "split": split_name,
+        "error_promedio_normal": round(float(error_normal), 6),
+        "error_promedio_anomalo": round(float(error_anomalo), 6),
+        "veces_mas_alto": round(float(error_anomalo / error_normal), 2) if error_normal else None,
+    }
+
 if __name__ == "__main__":
     df = load_errors()
     print(f"Filas cargadas: {len(df)}")
@@ -142,3 +157,7 @@ if __name__ == "__main__":
     test_metrics, test_scored = evaluate_split(df, "prueba", thresholds)
     print("\nMetricas - split de prueba:")
     print(test_metrics)
+
+    gap = compute_error_gap(df, "prueba")
+    print("\nComparacion de error normal vs. anomalo:")
+    print(gap)
