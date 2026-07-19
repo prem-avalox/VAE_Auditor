@@ -10,12 +10,22 @@ from pathlib import Path
 
 import pandas as pd
 from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score
+try:
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    HAS_MATPLOTLIB = True
+except ImportError:
+    HAS_MATPLOTLIB = False
 
 import numpy as np
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REPORTS_DIR = PROJECT_ROOT / "reports"
 ERRORS_PATH = REPORTS_DIR / "reconstruction_errors.csv"
+PLOT_PATH = REPORTS_DIR / "distribucion_error_reconstruccion.png"
 
 REQUIRED_COLUMNS = {
     "id_transaccion",
@@ -144,6 +154,38 @@ def compute_error_gap(df: pd.DataFrame, split_name: str) -> dict:
         "veces_mas_alto": round(float(error_anomalo / error_normal), 2) if error_normal else None,
     }
 
+
+def make_plot(df_scored: pd.DataFrame, thresholds: dict) -> None:
+    """Genera un histograma del error de reconstruccion, normal vs anomalo,
+    con los 3 umbrales marcados. Se salta si no hay matplotlib instalado."""
+    if not HAS_MATPLOTLIB:
+        print("matplotlib no esta instalado, se omite el grafico.")
+        return
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    normal = df_scored[df_scored["es_anomalia"] == 0]["reconstruction_error"]
+    anomalo = df_scored[df_scored["es_anomalia"] == 1]["reconstruction_error"]
+
+    bins = np.linspace(0, df_scored["reconstruction_error"].quantile(0.99), 60)
+    ax.hist(normal, bins=bins, alpha=0.6, label="Normal (real)", color="#1f77b4")
+    ax.hist(anomalo, bins=bins, alpha=0.6, label="Anomala (real)", color="#d62728")
+
+    for nombre, valor, color in [
+        ("Umbral baja (P95)", thresholds["umbral_baja"], "#f0ad4e"),
+        ("Umbral media (P99)", thresholds["umbral_media"], "#d9534f"),
+        ("Umbral alta (P99.9)", thresholds["umbral_alta"], "#8b0000"),
+    ]:
+        ax.axvline(valor, color=color, linestyle="--", linewidth=1.2, label=nombre)
+
+    ax.set_xlabel("Error de reconstruccion (MSE)")
+    ax.set_ylabel("Numero de transacciones")
+    ax.set_title("Distribucion del error de reconstruccion (split de prueba)")
+    ax.legend()
+    fig.tight_layout()
+    fig.savefig(PLOT_PATH, dpi=150)
+    plt.close(fig)
+    print(f"Grafico guardado en: {PLOT_PATH}")
+
 if __name__ == "__main__":
     df = load_errors()
     print(f"Filas cargadas: {len(df)}")
@@ -161,3 +203,5 @@ if __name__ == "__main__":
     gap = compute_error_gap(df, "prueba")
     print("\nComparacion de error normal vs. anomalo:")
     print(gap)
+
+    make_plot(test_scored, thresholds)
