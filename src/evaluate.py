@@ -9,6 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pandas as pd
+from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score
 
 import numpy as np
 
@@ -84,6 +85,50 @@ def classify_transaction(reconstruction_error: float, thresholds: dict, monto: f
         resultado["monto"] = monto
     return resultado
 
+
+def evaluate_split(df: pd.DataFrame, split_name: str, thresholds: dict) -> tuple[dict, pd.DataFrame]:
+    """Aplica los umbrales a todas las transacciones de un split y calcula
+    precision, recall, F1, matriz de confusion y monto en riesgo."""
+    subset = df[df["split"] == split_name].copy()
+    subset["severidad"] = subset["reconstruction_error"].apply(lambda e: assign_severity(e, thresholds))
+    subset["prediccion_anomalia"] = (subset["severidad"] != "normal").astype(int)
+
+    y_true = subset["es_anomalia"].to_numpy()
+    y_pred = subset["prediccion_anomalia"].to_numpy()
+
+    precision = precision_score(y_true, y_pred, zero_division=0)
+    recall = recall_score(y_true, y_pred, zero_division=0)
+    f1 = f1_score(y_true, y_pred, zero_division=0)
+    tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
+
+    monto_en_riesgo = float(subset.loc[subset["prediccion_anomalia"] == 1, "monto_final"].sum())
+    monto_en_riesgo_confirmado = float(
+        subset.loc[(subset["prediccion_anomalia"] == 1) & (subset["es_anomalia"] == 1), "monto_final"].sum()
+    )
+    monto_total_split = float(subset["monto_final"].sum())
+
+    metrics = {
+        "split": split_name,
+        "n_transacciones": int(len(subset)),
+        "n_predichas_anomalas": int(y_pred.sum()),
+        "n_reales_anomalas": int(y_true.sum()),
+        "precision": round(float(precision), 4),
+        "recall": round(float(recall), 4),
+        "f1_score": round(float(f1), 4),
+        "matriz_confusion": {
+            "verdaderos_negativos": int(tn),
+            "falsos_positivos": int(fp),
+            "falsos_negativos": int(fn),
+            "verdaderos_positivos": int(tp),
+        },
+        "monto_total_split": round(monto_total_split, 2),
+        "monto_total_en_riesgo": round(monto_en_riesgo, 2),
+        "monto_en_riesgo_confirmado": round(monto_en_riesgo_confirmado, 2),
+        "pct_monto_en_riesgo": round(100 * monto_en_riesgo / monto_total_split, 2) if monto_total_split else 0.0,
+        "distribucion_severidad": subset["severidad"].value_counts().to_dict(),
+    }
+    return metrics, subset
+
 if __name__ == "__main__":
     df = load_errors()
     print(f"Filas cargadas: {len(df)}")
@@ -94,6 +139,6 @@ if __name__ == "__main__":
     print("\nUmbrales calibrados:")
     print(thresholds)
 
-    ejemplo = classify_transaction(reconstruction_error=0.09, thresholds=thresholds, monto=45.50)
-    print("\nEjemplo de clasificacion (parte 5 usaria esta funcion asi):")
-    print(ejemplo)
+    test_metrics, test_scored = evaluate_split(df, "prueba", thresholds)
+    print("\nMetricas - split de prueba:")
+    print(test_metrics)
