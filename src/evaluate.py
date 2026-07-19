@@ -59,6 +59,31 @@ def calibrate_thresholds(df: pd.DataFrame, low_pct: float, medium_pct: float, hi
         "fuente_calibracion": "validacion (solo transacciones normales, es_anomalia == 0)",
     }
 
+def assign_severity(error: float, thresholds: dict) -> str:
+    """Clasifica un error de reconstruccion individual en severidad."""
+    if error <= thresholds["umbral_baja"]:
+        return "normal"
+    if error <= thresholds["umbral_media"]:
+        return "baja"
+    if error <= thresholds["umbral_alta"]:
+        return "media"
+    return "alta"
+
+
+def classify_transaction(reconstruction_error: float, thresholds: dict, monto: float | None = None) -> dict:
+    """Punto de entrada para la parte 5: clasifica UNA transaccion nueva
+    a partir de su error de reconstruccion (ya calculado por la parte 3)
+    y los umbrales ya calibrados (ver reports/umbral_severidad.json)."""
+    severidad = assign_severity(reconstruction_error, thresholds)
+    resultado = {
+        "reconstruction_error": reconstruction_error,
+        "severidad": severidad,
+        "es_anomalia": severidad != "normal",
+    }
+    if monto is not None:
+        resultado["monto"] = monto
+    return resultado
+
 if __name__ == "__main__":
     df = load_errors()
     print(f"Filas cargadas: {len(df)}")
@@ -68,3 +93,7 @@ if __name__ == "__main__":
     )
     print("\nUmbrales calibrados:")
     print(thresholds)
+
+    ejemplo = classify_transaction(reconstruction_error=0.09, thresholds=thresholds, monto=45.50)
+    print("\nEjemplo de clasificacion (parte 5 usaria esta funcion asi):")
+    print(ejemplo)
