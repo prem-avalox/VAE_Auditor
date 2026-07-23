@@ -1,0 +1,6 @@
+2026-07-21 10:42:52 | INFO | Prueba del sistema de logging
+2026-07-21 11:09:53 | INFO | Inicio de sesión exitoso | Usuario: tecnico | Rol: Técnico
+2026-07-21 11:11:20 | WARNING | Intento de inicio de sesión fallido | Usuario ingresado: admin
+[2026-07-22 20:10:07] [WARNING] [LOGIN_FAIL] usuario=jorge
+[2026-07-22 20:10:45] [WARNING] [LOGIN_FAIL] usuario=tecnico
+[2026-07-22 20:10:54] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
