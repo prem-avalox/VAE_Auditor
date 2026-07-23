@@ -9,6 +9,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+from src.logger import log_info, log_warning, log_error
 
 # ── Configuración de página ──────────────────────────────────────────────────
 st.set_page_config(
@@ -128,15 +129,28 @@ def show_login():
 
             if submitted:
                 user_data = USERS.get(usuario.strip().lower())
+
                 if user_data and clave == user_data["password"]:
                     st.session_state.logged_in = True
-                    st.session_state.username  = usuario.strip().lower()
-                    st.session_state.rol       = user_data["rol"]
-                    st.session_state.display   = user_data["display"]
+                    st.session_state.username = usuario.strip().lower()
+                    st.session_state.rol = user_data["rol"]
+                    st.session_state.display = user_data["display"]
                     st.session_state.login_err = ""
+
+                    log_info(
+                        "LOGIN_OK",
+                        f"usuario={st.session_state.username}, rol={st.session_state.rol}"
+                    )
+
                     st.rerun()
+
                 else:
                     st.session_state.login_err = "Usuario o contraseña incorrectos."
+
+                    log_warning(
+                        "LOGIN_FAIL",
+                        f"usuario={usuario}"
+                    )
 
         if st.session_state.login_err:
             st.error(st.session_state.login_err)
