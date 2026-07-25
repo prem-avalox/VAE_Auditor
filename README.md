@@ -258,7 +258,6 @@ Para tener presente al presentar el proyecto, en la seccion de riesgos y
 sostenibilidad:
 
 - Autenticacion con credenciales fijas en el codigo (`USERS` en `app.py`):
-  suficiente para la demostracion, no para produccion.
 - Sin multi-tenancy: los datos de distintos restaurantes no estan aislados
   entre si.
 - Persistencia en archivos (CSV/JSON), sin base de datos.
