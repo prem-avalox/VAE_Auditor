@@ -1,0 +1,383 @@
+2026-07-21 10:42:52 | INFO | Prueba del sistema de logging
+2026-07-21 11:09:53 | INFO | Inicio de sesión exitoso | Usuario: tecnico | Rol: Técnico
+2026-07-21 11:11:20 | WARNING | Intento de inicio de sesión fallido | Usuario ingresado: admin
+[2026-07-22 20:10:07] [WARNING] [LOGIN_FAIL] usuario=jorge
+[2026-07-22 20:10:45] [WARNING] [LOGIN_FAIL] usuario=tecnico
+[2026-07-22 20:10:54] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-22 23:11:35] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-22 23:21:28] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-23 16:03:35] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-23 16:03:43] [INFO] [BATCH_PROCESSED] transacciones=4958, latencia=0.000000s, throughput=1180476148.72 trans/s
+[2026-07-23 16:04:22] [INFO] [BATCH_PROCESSED] transacciones=4958, latencia=0.000000s, throughput=222331841.28 trans/s
+[2026-07-23 16:04:27] [INFO] [BATCH_PROCESSED] transacciones=4958, latencia=0.000000s, throughput=328344372.43 trans/s
+[2026-07-23 16:05:52] [INFO] [BATCH_PROCESSED] transacciones=4958, latencia=0.000000s, throughput=1377222173.51 trans/s
+[2026-07-23 16:05:55] [INFO] [BATCH_PROCESSED] transacciones=4958, latencia=0.000000s, throughput=1770714318.94 trans/s
+[2026-07-23 16:11:18] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-23 16:11:20] [INFO] [BATCH_PROCESSED] transacciones=4958, tiempo_total=0.005644s, latencia=0.000001s, throughput=878501.69 trans/s
+[2026-07-23 16:19:14] [INFO] [BATCH_PROCESSED] transacciones=4958, tiempo_total=0.003297s, latencia=0.000001s, throughput=1503745.72 trans/s
+[2026-07-24 12:50:42] [INFO] [Prueba del sistema de logging] 
+[2026-07-24 12:51:35] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.030230, latencia=0.131957s
+[2026-07-24 12:51:35] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=3.292017, latencia=0.133721s
+[2026-07-24 12:51:35] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.379783, latencia=0.131938s
+[2026-07-24 12:51:35] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.516788, latencia=0.040117s
+[2026-07-24 12:51:35] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.133950, latencia=0.039910s
+[2026-07-24 12:51:35] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.282305, latencia=0.043251s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.554165, latencia=0.039429s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.267825, latencia=0.040868s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.699367, latencia=0.042191s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.416031, latencia=0.033636s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.954282, latencia=0.034429s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=2.452585, latencia=0.034237s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.812317, latencia=0.034542s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.676579, latencia=0.032165s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.961301, latencia=0.032983s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.196534, latencia=0.036168s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.030003, latencia=0.038231s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.201509, latencia=0.037537s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=2.241058, latencia=0.029002s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.519600, latencia=0.028803s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.362561, latencia=0.031894s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.187023, latencia=0.025972s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.458167, latencia=0.028120s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.421537, latencia=0.027423s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.386809, latencia=0.032980s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.591669, latencia=0.032006s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=2.082401, latencia=0.032729s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.676882, latencia=0.030673s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.516565, latencia=0.029679s
+[2026-07-24 12:51:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.326168, latencia=0.029701s
+[2026-07-24 12:51:36] [INFO] [CONCURRENCY_TEST_PASSED] users=3, total_tx=30, time=0.5556s, throughput=53.99tx/s
+[2026-07-24 12:53:09] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-24 12:53:38] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.238884s, latencia=0.000048s, throughput=20754.84 trans/s
+[2026-07-24 12:54:02] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.014031s, latencia=0.000003s, throughput=353360.42 trans/s
+[2026-07-24 12:54:05] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010758s, latencia=0.000002s, throughput=460857.76 trans/s
+[2026-07-24 12:54:07] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009313s, latencia=0.000002s, throughput=532396.97 trans/s
+[2026-07-24 12:54:08] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010485s, latencia=0.000002s, throughput=472879.53 trans/s
+[2026-07-24 12:54:11] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.006967s, latencia=0.000001s, throughput=711620.16 trans/s
+[2026-07-24 12:54:14] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010744s, latencia=0.000002s, throughput=461484.05 trans/s
+[2026-07-24 12:54:16] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.017727s, latencia=0.000004s, throughput=279692.67 trans/s
+[2026-07-24 12:55:00] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.006630s, latencia=0.000001s, throughput=747824.25 trans/s
+[2026-07-24 13:01:39] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-24 13:01:41] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008906s, latencia=0.000002s, throughput=556684.59 trans/s
+[2026-07-24 13:01:43] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009540s, latencia=0.000002s, throughput=519728.29 trans/s
+[2026-07-24 13:01:52] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008509s, latencia=0.000002s, throughput=582690.86 trans/s
+[2026-07-24 13:02:00] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009450s, latencia=0.000002s, throughput=524678.29 trans/s
+[2026-07-24 13:02:01] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009245s, latencia=0.000002s, throughput=536272.48 trans/s
+[2026-07-24 13:02:02] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008426s, latencia=0.000002s, throughput=588423.79 trans/s
+[2026-07-24 13:02:03] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008691s, latencia=0.000002s, throughput=570481.77 trans/s
+[2026-07-24 13:03:02] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-24 13:03:05] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.013474s, latencia=0.000003s, throughput=367978.86 trans/s
+[2026-07-24 13:03:19] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009091s, latencia=0.000002s, throughput=545362.55 trans/s
+[2026-07-24 13:03:21] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009307s, latencia=0.000002s, throughput=532688.69 trans/s
+[2026-07-24 13:03:22] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007605s, latencia=0.000002s, throughput=651965.23 trans/s
+[2026-07-24 13:03:26] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007883s, latencia=0.000002s, throughput=628916.46 trans/s
+[2026-07-24 13:03:29] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009015s, latencia=0.000002s, throughput=549996.67 trans/s
+[2026-07-24 13:03:31] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.005733s, latencia=0.000001s, throughput=864847.89 trans/s
+[2026-07-24 13:03:33] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010935s, latencia=0.000002s, throughput=453427.23 trans/s
+[2026-07-24 13:03:35] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008287s, latencia=0.000002s, throughput=598315.35 trans/s
+[2026-07-24 13:03:36] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009870s, latencia=0.000002s, throughput=502335.38 trans/s
+[2026-07-24 13:03:38] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010116s, latencia=0.000002s, throughput=490095.29 trans/s
+[2026-07-24 13:03:40] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008177s, latencia=0.000002s, throughput=606342.26 trans/s
+[2026-07-24 13:03:43] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007417s, latencia=0.000001s, throughput=668473.35 trans/s
+[2026-07-24 13:05:02] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.013170s, latencia=0.000003s, throughput=376455.94 trans/s
+[2026-07-24 13:05:26] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.012482s, latencia=0.000003s, throughput=397218.35 trans/s
+[2026-07-24 13:05:39] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.012502s, latencia=0.000003s, throughput=396582.89 trans/s
+[2026-07-24 13:07:32] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-24 13:07:34] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008142s, latencia=0.000002s, throughput=608903.90 trans/s
+[2026-07-24 13:07:38] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.012456s, latencia=0.000003s, throughput=398041.10 trans/s
+[2026-07-24 13:07:40] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.011189s, latencia=0.000002s, throughput=443097.93 trans/s
+[2026-07-24 13:07:43] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008824s, latencia=0.000002s, throughput=561863.97 trans/s
+[2026-07-24 13:07:45] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010098s, latencia=0.000002s, throughput=490968.87 trans/s
+[2026-07-24 13:08:12] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-24 13:08:32] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.216706s, latencia=0.000044s, throughput=22878.93 trans/s
+[2026-07-24 13:08:37] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008491s, latencia=0.000002s, throughput=583919.25 trans/s
+[2026-07-24 13:08:38] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.011964s, latencia=0.000002s, throughput=414413.36 trans/s
+[2026-07-24 13:08:39] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009956s, latencia=0.000002s, throughput=498011.17 trans/s
+[2026-07-24 13:08:41] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007431s, latencia=0.000001s, throughput=667178.02 trans/s
+[2026-07-24 13:08:44] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.012039s, latencia=0.000002s, throughput=411835.07 trans/s
+[2026-07-24 13:08:49] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007623s, latencia=0.000002s, throughput=650408.64 trans/s
+[2026-07-24 13:08:52] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.011032s, latencia=0.000002s, throughput=449440.24 trans/s
+[2026-07-24 13:08:55] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.013245s, latencia=0.000003s, throughput=374329.94 trans/s
+[2026-07-24 13:08:59] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008478s, latencia=0.000002s, throughput=584807.74 trans/s
+[2026-07-24 13:09:01] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008711s, latencia=0.000002s, throughput=569165.42 trans/s
+[2026-07-24 13:09:02] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.011740s, latencia=0.000002s, throughput=422324.06 trans/s
+[2026-07-24 13:09:07] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.012768s, latencia=0.000003s, throughput=388299.33 trans/s
+[2026-07-24 13:09:09] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.011077s, latencia=0.000002s, throughput=447610.28 trans/s
+[2026-07-24 13:09:10] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009811s, latencia=0.000002s, throughput=505366.59 trans/s
+[2026-07-24 13:09:14] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008773s, latencia=0.000002s, throughput=565155.94 trans/s
+[2026-07-24 13:09:15] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010257s, latencia=0.000002s, throughput=483367.78 trans/s
+[2026-07-24 13:09:22] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009217s, latencia=0.000002s, throughput=537907.39 trans/s
+[2026-07-24 13:09:28] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007723s, latencia=0.000002s, throughput=642011.76 trans/s
+[2026-07-24 13:09:29] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007296s, latencia=0.000001s, throughput=679587.70 trans/s
+[2026-07-24 13:10:11] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.023701s, latencia=0.000005s, throughput=209193.02 trans/s
+[2026-07-24 13:10:21] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008852s, latencia=0.000002s, throughput=560112.07 trans/s
+[2026-07-24 13:10:23] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010732s, latencia=0.000002s, throughput=461974.25 trans/s
+[2026-07-24 13:10:30] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009963s, latencia=0.000002s, throughput=497666.25 trans/s
+[2026-07-24 13:13:59] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-24 13:14:01] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010808s, latencia=0.000002s, throughput=458717.29 trans/s
+[2026-07-24 13:14:05] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010852s, latencia=0.000002s, throughput=456870.10 trans/s
+[2026-07-24 13:14:09] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009775s, latencia=0.000002s, throughput=507238.22 trans/s
+[2026-07-24 13:14:10] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009353s, latencia=0.000002s, throughput=530114.30 trans/s
+[2026-07-24 13:14:11] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010916s, latencia=0.000002s, throughput=454199.84 trans/s
+[2026-07-24 13:14:13] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.006996s, latencia=0.000001s, throughput=708680.55 trans/s
+[2026-07-24 13:14:36] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.012042s, latencia=0.000002s, throughput=411735.88 trans/s
+[2026-07-24 13:14:38] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.012047s, latencia=0.000002s, throughput=411554.74 trans/s
+[2026-07-24 13:14:41] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.014618s, latencia=0.000003s, throughput=339173.21 trans/s
+[2026-07-24 13:14:43] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010538s, latencia=0.000002s, throughput=470483.29 trans/s
+[2026-07-24 13:14:47] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.012794s, latencia=0.000003s, throughput=387510.26 trans/s
+[2026-07-24 13:14:50] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008848s, latencia=0.000002s, throughput=560358.96 trans/s
+[2026-07-24 13:14:53] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008905s, latencia=0.000002s, throughput=556778.37 trans/s
+[2026-07-24 13:15:05] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009038s, latencia=0.000002s, throughput=548566.62 trans/s
+[2026-07-24 13:15:09] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010383s, latencia=0.000002s, throughput=477511.32 trans/s
+[2026-07-24 13:15:21] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.083848, latencia=0.028827s
+[2026-07-24 13:15:26] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.121543, latencia=0.027128s
+[2026-07-24 13:15:36] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.123709, latencia=0.024993s
+[2026-07-24 13:15:45] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.123143, latencia=0.019121s
+[2026-07-24 13:15:54] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.086613, latencia=0.029969s
+[2026-07-24 13:15:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.535421, latencia=0.026419s
+[2026-07-24 13:16:01] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.535421, latencia=0.026472s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.092349, latencia=0.078936s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.313849, latencia=0.080471s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.254673, latencia=0.081837s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.409242, latencia=0.022542s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.305478, latencia=0.023909s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.976971, latencia=0.023167s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.856513, latencia=0.026090s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.370839, latencia=0.025785s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.573418, latencia=0.026437s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.495646, latencia=0.023714s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.477892, latencia=0.023737s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.796328, latencia=0.024794s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.708801, latencia=0.023517s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.261302, latencia=0.024622s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.517418, latencia=0.025684s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.124904, latencia=0.024471s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.681286, latencia=0.026762s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.513383, latencia=0.025866s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.324829, latencia=0.028235s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.486259, latencia=0.029329s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.224888, latencia=0.028474s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.426291, latencia=0.028623s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.428684, latencia=0.028431s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.930928, latencia=0.029613s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.195779, latencia=0.027334s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.509781, latencia=0.028154s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.462537, latencia=0.029010s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.383972, latencia=0.027533s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=3.092055, latencia=0.028778s
+[2026-07-24 13:19:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.575033, latencia=0.028464s
+[2026-07-24 13:19:20] [INFO] [CONCURRENCY_TEST_PASSED] users=3, total_tx=30, time=0.4306s, throughput=69.67tx/s
+[2026-07-24 13:21:28] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.083848, latencia=0.048357s
+[2026-07-24 13:21:34] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.083848, latencia=0.016561s
+[2026-07-24 13:21:34] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.083848, latencia=0.014338s
+[2026-07-24 13:21:34] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.083848, latencia=0.012527s
+[2026-07-24 13:21:35] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.083848, latencia=0.011560s
+[2026-07-24 13:43:44] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-24 13:44:00] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.083848, latencia=0.184864s
+[2026-07-24 13:44:02] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.090282, latencia=0.025945s
+[2026-07-24 13:44:04] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.138789, latencia=0.020157s
+[2026-07-24 13:44:06] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.142077, latencia=0.018195s
+[2026-07-24 13:44:08] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.088931, latencia=0.020522s
+[2026-07-24 13:44:12] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.087771, latencia=0.022086s
+[2026-07-24 13:44:14] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.142518, latencia=0.042205s
+[2026-07-24 13:44:17] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.085854, latencia=0.016870s
+[2026-07-24 13:44:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.142518, latencia=0.024535s
+[2026-07-24 13:44:23] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.089502, latencia=0.020108s
+[2026-07-24 13:44:28] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.103305, latencia=0.024333s
+[2026-07-24 13:44:33] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.107264, latencia=0.022772s
+[2026-07-24 13:44:33] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.107264, latencia=0.023543s
+[2026-07-24 13:44:33] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.107264, latencia=0.025533s
+[2026-07-24 13:45:05] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009333s, latencia=0.000002s, throughput=531227.57 trans/s
+[2026-07-24 13:47:56] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-24 13:48:12] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007941s, latencia=0.000002s, throughput=624331.03 trans/s
+[2026-07-24 13:48:22] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007947s, latencia=0.000002s, throughput=623898.93 trans/s
+[2026-07-24 13:48:24] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007706s, latencia=0.000002s, throughput=643369.71 trans/s
+[2026-07-24 13:48:26] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007027s, latencia=0.000001s, throughput=705544.17 trans/s
+[2026-07-24 13:48:27] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008309s, latencia=0.000002s, throughput=596716.73 trans/s
+[2026-07-24 13:48:30] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007188s, latencia=0.000001s, throughput=689799.10 trans/s
+[2026-07-24 13:48:35] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007213s, latencia=0.000001s, throughput=687379.56 trans/s
+[2026-07-24 13:48:36] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010789s, latencia=0.000002s, throughput=459537.87 trans/s
+[2026-07-24 13:48:43] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-24 13:48:45] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007664s, latencia=0.000002s, throughput=646929.11 trans/s
+[2026-07-24 13:48:50] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008202s, latencia=0.000002s, throughput=604464.60 trans/s
+[2026-07-24 13:48:52] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008167s, latencia=0.000002s, throughput=607069.83 trans/s
+[2026-07-24 13:48:53] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.006995s, latencia=0.000001s, throughput=708761.60 trans/s
+[2026-07-24 13:49:02] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007808s, latencia=0.000002s, throughput=635006.02 trans/s
+[2026-07-24 13:49:04] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010990s, latencia=0.000002s, throughput=451133.29 trans/s
+[2026-07-24 13:49:05] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009263s, latencia=0.000002s, throughput=535265.10 trans/s
+[2026-07-24 13:49:07] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007931s, latencia=0.000002s, throughput=625141.85 trans/s
+[2026-07-24 13:49:18] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007555s, latencia=0.000002s, throughput=656245.45 trans/s
+[2026-07-24 13:49:20] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007913s, latencia=0.000002s, throughput=626548.05 trans/s
+[2026-07-24 13:49:32] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009053s, latencia=0.000002s, throughput=547651.66 trans/s
+[2026-07-24 13:49:33] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008377s, latencia=0.000002s, throughput=591858.66 trans/s
+[2026-07-24 13:49:35] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.006491s, latencia=0.000001s, throughput=763850.37 trans/s
+[2026-07-24 13:49:36] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.006629s, latencia=0.000001s, throughput=747959.63 trans/s
+[2026-07-24 13:49:37] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007974s, latencia=0.000002s, throughput=621755.16 trans/s
+[2026-07-24 13:49:50] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008024s, latencia=0.000002s, throughput=617880.91 trans/s
+[2026-07-24 13:49:51] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007537s, latencia=0.000002s, throughput=657830.14 trans/s
+[2026-07-24 13:49:53] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.006810s, latencia=0.000001s, throughput=728057.68 trans/s
+[2026-07-24 13:49:54] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.006611s, latencia=0.000001s, throughput=749928.15 trans/s
+[2026-07-24 13:49:56] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007908s, latencia=0.000002s, throughput=626928.33 trans/s
+[2026-07-24 13:49:57] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007688s, latencia=0.000002s, throughput=644917.92 trans/s
+[2026-07-24 13:49:59] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.006094s, latencia=0.000001s, throughput=813640.54 trans/s
+[2026-07-24 13:50:00] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007208s, latencia=0.000001s, throughput=687885.01 trans/s
+[2026-07-24 13:50:02] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007444s, latencia=0.000002s, throughput=666003.98 trans/s
+[2026-07-24 13:50:03] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.004536s, latencia=0.000001s, throughput=1092961.22 trans/s
+[2026-07-24 13:50:05] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007486s, latencia=0.000002s, throughput=662338.36 trans/s
+[2026-07-24 13:50:07] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008692s, latencia=0.000002s, throughput=570442.39 trans/s
+[2026-07-24 13:50:08] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009502s, latencia=0.000002s, throughput=521773.91 trans/s
+[2026-07-24 13:50:10] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008480s, latencia=0.000002s, throughput=584704.29 trans/s
+[2026-07-24 13:50:20] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.006283s, latencia=0.000001s, throughput=789113.48 trans/s
+[2026-07-24 13:50:22] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008955s, latencia=0.000002s, throughput=553688.09 trans/s
+[2026-07-24 13:50:24] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.006867s, latencia=0.000001s, throughput=722045.85 trans/s
+[2026-07-24 13:50:25] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007491s, latencia=0.000002s, throughput=661860.90 trans/s
+[2026-07-24 13:50:29] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009782s, latencia=0.000002s, throughput=506870.04 trans/s
+[2026-07-24 13:50:33] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007374s, latencia=0.000001s, throughput=672353.24 trans/s
+[2026-07-24 13:50:34] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008628s, latencia=0.000002s, throughput=574660.69 trans/s
+[2026-07-24 13:50:36] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.006772s, latencia=0.000001s, throughput=732143.12 trans/s
+[2026-07-24 13:50:38] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008821s, latencia=0.000002s, throughput=562099.65 trans/s
+[2026-07-24 13:50:40] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009645s, latencia=0.000002s, throughput=514048.73 trans/s
+[2026-07-24 13:50:50] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010945s, latencia=0.000002s, throughput=452988.10 trans/s
+[2026-07-24 13:50:53] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.006539s, latencia=0.000001s, throughput=758196.72 trans/s
+[2026-07-24 13:50:57] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007654s, latencia=0.000002s, throughput=647757.41 trans/s
+[2026-07-24 13:51:00] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008191s, latencia=0.000002s, throughput=605328.06 trans/s
+[2026-07-24 13:51:02] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.006957s, latencia=0.000001s, throughput=712643.02 trans/s
+[2026-07-24 13:51:03] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009737s, latencia=0.000002s, throughput=509196.97 trans/s
+[2026-07-24 13:51:04] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008137s, latencia=0.000002s, throughput=609300.50 trans/s
+[2026-07-24 13:51:07] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010138s, latencia=0.000002s, throughput=489046.27 trans/s
+[2026-07-24 13:51:14] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007706s, latencia=0.000002s, throughput=643419.81 trans/s
+[2026-07-24 13:51:27] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.131704, latencia=0.021594s
+[2026-07-24 13:51:34] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.087174, latencia=0.018911s
+[2026-07-24 13:51:43] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.104222, latencia=0.021738s
+[2026-07-24 13:51:48] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.104269, latencia=0.021742s
+[2026-07-24 13:52:03] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.131876, latencia=0.019268s
+[2026-07-24 13:52:10] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.138184, latencia=0.021889s
+[2026-07-24 13:52:16] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.177848, latencia=0.021140s
+[2026-07-24 13:52:18] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.122990, latencia=0.025689s
+[2026-07-24 13:52:20] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.163719, latencia=0.022082s
+[2026-07-24 13:52:22] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.138184, latencia=0.019439s
+[2026-07-24 13:52:24] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.126440, latencia=0.021489s
+[2026-07-24 13:52:27] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.123149, latencia=0.017158s
+[2026-07-24 13:52:29] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.123820, latencia=0.023971s
+[2026-07-24 13:52:31] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.123149, latencia=0.020342s
+[2026-07-24 13:52:33] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.123149, latencia=0.019787s
+[2026-07-24 13:52:35] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.123149, latencia=0.019923s
+[2026-07-24 13:52:39] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.233403, latencia=0.022346s
+[2026-07-24 13:52:42] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.266165, latencia=0.024857s
+[2026-07-24 13:52:48] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.147398, latencia=0.019996s
+[2026-07-24 13:52:52] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.120118, latencia=0.022862s
+[2026-07-24 13:52:56] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.139263, latencia=0.023127s
+[2026-07-24 13:53:01] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.126612, latencia=0.020906s
+[2026-07-24 13:53:04] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.120118, latencia=0.022083s
+[2026-07-24 13:53:07] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.123149, latencia=0.021844s
+[2026-07-24 13:53:10] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.120118, latencia=0.023755s
+[2026-07-24 13:53:14] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.115882, latencia=0.023168s
+[2026-07-24 13:53:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.148532, latencia=0.023596s
+[2026-07-24 13:53:24] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.117955, latencia=0.021087s
+[2026-07-24 13:53:29] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.115825, latencia=0.023095s
+[2026-07-24 13:53:32] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.115882, latencia=0.017608s
+[2026-07-24 13:53:37] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.116710, latencia=0.020347s
+[2026-07-24 13:53:42] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.109238, latencia=0.027294s
+[2026-07-24 13:53:46] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.103310, latencia=0.018024s
+[2026-07-24 13:53:51] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.084584, latencia=0.021682s
+[2026-07-24 13:53:54] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.105965, latencia=0.021574s
+[2026-07-24 13:53:57] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.090490, latencia=0.019750s
+[2026-07-24 13:54:01] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.084584, latencia=0.022298s
+[2026-07-24 13:54:05] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.086862, latencia=0.026939s
+[2026-07-24 13:54:12] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.084434, latencia=0.018429s
+[2026-07-24 13:54:19] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.085833, latencia=0.020070s
+[2026-07-24 13:54:22] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.084434, latencia=0.020819s
+[2026-07-24 13:54:25] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.084239, latencia=0.026189s
+[2026-07-24 13:54:30] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.084345, latencia=0.022198s
+[2026-07-24 13:54:38] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.084345, latencia=0.021208s
+[2026-07-24 13:54:40] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.086896, latencia=0.018390s
+[2026-07-24 13:54:42] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.084345, latencia=0.020422s
+[2026-07-24 13:54:56] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.084345, latencia=0.023846s
+[2026-07-24 13:55:01] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.084345, latencia=0.020229s
+[2026-07-24 13:55:03] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.084345, latencia=0.020795s
+[2026-07-24 13:55:07] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008321s, latencia=0.000002s, throughput=595863.33 trans/s
+[2026-07-24 16:17:35] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-24 16:17:37] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010125s, latencia=0.000002s, throughput=489683.85 trans/s
+[2026-07-24 16:17:41] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009382s, latencia=0.000002s, throughput=528436.22 trans/s
+[2026-07-24 16:17:43] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010226s, latencia=0.000002s, throughput=484842.56 trans/s
+[2026-07-24 16:17:46] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010480s, latencia=0.000002s, throughput=473087.09 trans/s
+[2026-07-24 16:17:47] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010591s, latencia=0.000002s, throughput=468120.06 trans/s
+[2026-07-24 16:17:49] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009630s, latencia=0.000002s, throughput=514838.74 trans/s
+[2026-07-24 16:18:15] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.083848, latencia=0.023381s
+[2026-07-24 16:18:20] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.090282, latencia=0.026075s
+[2026-07-24 16:18:25] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.083848, latencia=0.024156s
+[2026-07-24 22:02:03] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-24 22:02:29] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.997200s, latencia=0.000201s, throughput=4971.92 trans/s
+[2026-07-24 22:02:37] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010777s, latencia=0.000002s, throughput=460032.48 trans/s
+[2026-07-24 22:02:44] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.011232s, latencia=0.000002s, throughput=441405.59 trans/s
+[2026-07-24 22:02:46] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008476s, latencia=0.000002s, throughput=584959.53 trans/s
+[2026-07-24 22:02:58] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008847s, latencia=0.000002s, throughput=560396.96 trans/s
+[2026-07-24 22:03:01] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.008131s, latencia=0.000002s, throughput=609772.60 trans/s
+[2026-07-24 22:03:11] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010924s, latencia=0.000002s, throughput=453863.05 trans/s
+[2026-07-24 22:03:21] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.083848, latencia=0.072423s
+[2026-07-24 22:03:38] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.006264s, latencia=0.000001s, throughput=791507.02 trans/s
+[2026-07-24 22:04:07] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010360s, latencia=0.000002s, throughput=478571.43 trans/s
+[2026-07-24 22:04:10] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.011096s, latencia=0.000002s, throughput=446811.58 trans/s
+[2026-07-24 22:04:12] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010859s, latencia=0.000002s, throughput=456567.18 trans/s
+[2026-07-24 22:04:48] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=baja, rec_error=0.082132, latencia=0.029440s
+[2026-07-24 22:04:54] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.085641, latencia=0.027623s
+[2026-07-24 22:04:56] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=baja, rec_error=0.082132, latencia=0.025882s
+[2026-07-24 22:04:57] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.083848, latencia=0.027591s
+[2026-07-24 22:04:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=baja, rec_error=0.082132, latencia=0.025595s
+[2026-07-24 22:05:13] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=baja, rec_error=0.077405, latencia=0.026221s
+[2026-07-24 22:05:18] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=baja, rec_error=0.065097, latencia=0.025097s
+[2026-07-24 22:05:22] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=baja, rec_error=0.068981, latencia=0.023714s
+[2026-07-24 22:05:25] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=baja, rec_error=0.065097, latencia=0.029406s
+[2026-07-24 22:05:27] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=baja, rec_error=0.068521, latencia=0.021483s
+[2026-07-24 22:05:28] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=baja, rec_error=0.069100, latencia=0.024305s
+[2026-07-24 22:05:30] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=normal, rec_error=0.061751, latencia=0.019576s
+[2026-07-24 22:05:47] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.201675, latencia=0.019258s
+[2026-07-24 22:05:50] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=normal, rec_error=0.061751, latencia=0.025443s
+[2026-07-24 22:05:52] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=baja, rec_error=0.079004, latencia=0.024338s
+[2026-07-24 22:05:53] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=normal, rec_error=0.061751, latencia=0.030997s
+[2026-07-24 22:05:55] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=baja, rec_error=0.064558, latencia=0.028295s
+[2026-07-24 22:05:57] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=baja, rec_error=0.065012, latencia=0.029530s
+[2026-07-24 22:05:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=baja, rec_error=0.065012, latencia=0.019680s
+[2026-07-24 22:06:01] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=normal, rec_error=0.061570, latencia=0.023155s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.125252, latencia=0.091114s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.395468, latencia=0.093469s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=2.257985, latencia=0.092489s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=2.099647, latencia=0.027841s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.654375, latencia=0.028125s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.469888, latencia=0.028748s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.140451, latencia=0.026319s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=2.911846, latencia=0.025139s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.793597, latencia=0.025909s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=2.268990, latencia=0.024813s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.489063, latencia=0.026368s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=2.111285, latencia=0.025887s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.369177, latencia=0.027987s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.691523, latencia=0.027483s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.673064, latencia=0.028056s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.164798, latencia=0.027512s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=2.166757, latencia=0.028273s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.666337, latencia=0.026564s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.771396, latencia=0.024995s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.286475, latencia=0.024553s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.342582, latencia=0.024986s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.476320, latencia=0.023808s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=2.311770, latencia=0.023004s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.285569, latencia=0.022219s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.467576, latencia=0.025502s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.389009, latencia=0.025141s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=2.457570, latencia=0.027600s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.682253, latencia=0.026011s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.948963, latencia=0.027870s
+[2026-07-24 22:07:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.682646, latencia=0.027744s
+[2026-07-24 22:07:59] [INFO] [CONCURRENCY_TEST_PASSED] users=3, total_tx=30, time=0.4424s, throughput=67.81tx/s
+[2026-07-24 22:10:25] [WARNING] [LOGIN_FAIL] usuario=rosita
+[2026-07-24 22:10:30] [WARNING] [LOGIN_FAIL] usuario=rosita
+[2026-07-24 22:10:32] [WARNING] [LOGIN_FAIL] usuario=rosita
+[2026-07-24 22:10:32] [WARNING] [LOGIN_FAIL] usuario=rosita
+[2026-07-24 22:10:32] [WARNING] [LOGIN_FAIL] usuario=rosita
+[2026-07-24 22:10:47] [INFO] [LOGIN_OK] usuario=rosita, rol=Negocio
+[2026-07-24 22:31:29] [INFO] [LOGIN_OK] usuario=rosita, rol=Negocio
+[2026-07-24 22:33:39] [INFO] [LOGIN_OK] usuario=rosita, rol=Negocio
+[2026-07-24 22:36:14] [INFO] [LOGIN_OK] usuario=rosita, rol=Negocio
+[2026-07-24 22:36:17] [INFO] [REAL_BATCH_PROCESSED] transacciones=10, tiempo_total=0.044976s, latencia=0.004498s, throughput=222.34 trans/s
+[2026-07-24 22:36:57] [INFO] [REAL_BATCH_PROCESSED] transacciones=10, tiempo_total=0.048264s, latencia=0.004826s, throughput=207.19 trans/s

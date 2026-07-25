@@ -9,6 +9,8 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+from src.logger import log_info, log_warning, log_error, LOG_FILE
+from src.audit_service import process_batch, evaluate_transaction, evaluate_raw_transaction, process_raw_batch
 
 # ── Configuración de página ──────────────────────────────────────────────────
 st.set_page_config(
@@ -128,15 +130,28 @@ def show_login():
 
             if submitted:
                 user_data = USERS.get(usuario.strip().lower())
+
                 if user_data and clave == user_data["password"]:
                     st.session_state.logged_in = True
-                    st.session_state.username  = usuario.strip().lower()
-                    st.session_state.rol       = user_data["rol"]
-                    st.session_state.display   = user_data["display"]
+                    st.session_state.username = usuario.strip().lower()
+                    st.session_state.rol = user_data["rol"]
+                    st.session_state.display = user_data["display"]
                     st.session_state.login_err = ""
+
+                    log_info(
+                        "LOGIN_OK",
+                        f"usuario={st.session_state.username}, rol={st.session_state.rol}"
+                    )
+
                     st.rerun()
+
                 else:
                     st.session_state.login_err = "Usuario o contraseña incorrectos."
+
+                    log_warning(
+                        "LOGIN_FAIL",
+                        f"usuario={usuario}"
+                    )
 
         if st.session_state.login_err:
             st.error(st.session_state.login_err)
@@ -197,7 +212,7 @@ with st.sidebar:
         st.markdown("#### Navegación")
         seccion = st.radio(
             "",
-            ["📊 Metricas de Rendimiento", "📁 Auditoría por Lotes (CSV)", "⚡ Verificar Venta"],
+            ["📊 Metricas de Rendimiento", "📁 Auditoría por Lotes (CSV)", "⚡ Verificar Venta", "📜 Logs y Rendimiento Sistema"],
             label_visibility="collapsed",
         )
         umbrales = load_umbrales()
@@ -392,8 +407,10 @@ if st.session_state.rol == "Técnico":
             df_audit = pd.read_csv(uploaded)
             st.success(f"Archivo cargado: **{len(df_audit):,}** filas")
 
+        df_audit, performance = process_batch(df_audit)
+
         st.markdown("---")
-        fcol1, fcol2, fcol3 = st.columns(3)
+        fcol1, fcol2, fcol3, fcol4 = st.columns([1, 1, 1, 1])
         with fcol1:
             splits_disp = ["Todos"] + sorted(df_audit["split"].dropna().unique().tolist())
             filtro_split = st.selectbox("Filtrar por Split", splits_disp)
@@ -402,30 +419,75 @@ if st.session_state.rol == "Técnico":
                                      if s in df_audit["severidad"].values]
             filtro_sev = st.selectbox("Filtrar por Severidad", sevs_disp)
         with fcol3:
+            busqueda_query = st.text_input("🔍 Buscar ID o Tipo", placeholder="Ej: 10042 o descuento")
+        with fcol4:
             solo_anomalias = st.toggle("Solo anomalías detectadas", value=False)
 
-        df_filtered = df_audit.copy()
+        # 1. Filtrado base (Split, Rango de Monto, Búsqueda, Solo Anomalías)
+        df_base = df_audit.copy()
         if filtro_split != "Todos":
-            df_filtered = df_filtered[df_filtered["split"] == filtro_split]
+            df_base = df_base[df_base["split"] == filtro_split]
+
+        if "monto_final" in df_base.columns:
+            m_min = float(df_audit["monto_final"].min())
+            m_max = float(df_audit["monto_final"].max())
+            rango_monto = st.slider(
+                "Rango de Monto ($)",
+                min_value=0.0,
+                max_value=max(m_max, 10.0),
+                value=(0.0, max(m_max, 10.0)),
+                step=1.0,
+            )
+            df_base = df_base[
+                (df_base["monto_final"] >= rango_monto[0]) &
+                (df_base["monto_final"] <= rango_monto[1])
+            ]
+
+        if solo_anomalias:
+            df_base = df_base[df_base["prediccion_anomalia"] == 1]
+        if busqueda_query.strip():
+            q = busqueda_query.strip().lower()
+            df_base = df_base[
+                df_base["id_transaccion"].astype(str).str.lower().str.contains(q) |
+                df_base["tipo_anomalia"].astype(str).str.lower().str.contains(q)
+            ]
+
+        total_transacciones_base = len(df_base)
+
+        # 2. Filtrado específico por Severidad sobre df_base
+        df_filtered = df_base.copy()
         if filtro_sev != "Todas":
             sev_key = {v: k for k, v in SEV_LABELS.items()}[filtro_sev]
             df_filtered = df_filtered[df_filtered["severidad"] == sev_key]
-        if solo_anomalias:
-            df_filtered = df_filtered[df_filtered["prediccion_anomalia"] == 1]
 
-        st.markdown(f"**{len(df_filtered):,}** transacciones con los filtros aplicados.")
+        n_coincidencias = len(df_filtered)
+        pct_del_total = (n_coincidencias / total_transacciones_base * 100) if total_transacciones_base > 0 else 0.0
+
+        # Anomalías en la selección para el monto en riesgo
+        anomalias_lote    = df_filtered[df_filtered["prediccion_anomalia"] == 1]
+        n_anomalias       = len(anomalias_lote)
+        monto_riesgo_lote = anomalias_lote["monto_final"].sum() if "monto_final" in anomalias_lote.columns else 0.0
+
+        if filtro_sev == "Todas":
+            pct_anomalias_total = (n_anomalias / total_transacciones_base * 100) if total_transacciones_base > 0 else 0.0
+            st.markdown(f"**{total_transacciones_base:,}** transacciones en el lote — **{n_anomalias:,}** anomalías detectadas ({pct_anomalias_total:.1f}%).")
+        else:
+            st.markdown(f"**{n_coincidencias:,}** transacciones con severidad **{filtro_sev}** ({pct_del_total:.1f}% del total de **{total_transacciones_base:,}** transacciones).")
 
         bk1, bk2, bk3 = st.columns(3)
-        anomalias_lote    = df_filtered[df_filtered["prediccion_anomalia"] == 1]
-        monto_riesgo_lote = anomalias_lote["monto_final"].sum()
-        pct_anomalias     = (len(anomalias_lote) / len(df_filtered) * 100) if len(df_filtered) else 0
         with bk1:
-            st.metric("Transacciones", f"{len(df_filtered):,}")
+            st.metric("Total Transacciones", f"{total_transacciones_base:,}")
         with bk2:
-            st.metric("Anomalías detectadas", f"{len(anomalias_lote):,}",
-                      delta=f"{pct_anomalias:.1f}% del lote", delta_color="inverse")
+            if filtro_sev == "Todas":
+                pct_anom = (n_anomalias / total_transacciones_base * 100) if total_transacciones_base > 0 else 0.0
+                st.metric("Anomalías Detectadas", f"{n_anomalias:,}",
+                          delta=f"{pct_anom:.1f}% del total", delta_color="inverse")
+            else:
+                color_delta = "normal" if filtro_sev == "Normal" else "inverse"
+                st.metric(f"Transacciones ({filtro_sev})", f"{n_coincidencias:,}",
+                          delta=f"{pct_del_total:.1f}% del total", delta_color=color_delta)
         with bk3:
-            st.metric("Monto en riesgo", f"${monto_riesgo_lote:,.2f}")
+            st.metric("Monto en Riesgo", f"${monto_riesgo_lote:,.2f}")
 
         gc1, gc2 = st.columns(2)
         with gc1:
@@ -437,13 +499,53 @@ if st.session_state.rol == "Técnico":
                 nbins=60, barmode="overlay", opacity=0.75,
                 labels={"reconstruction_error": "Error de Reconstrucción", "severidad": "Severidad"},
             )
-            for key, label in [("umbral_baja","Baja"),("umbral_media","Media"),("umbral_alta","Alta")]:
-                fig_hist.add_vline(x=umbrales[key], line_dash="dash",
-                    line_color=SEVERITY_COLORS[key.replace("umbral_","")],
-                    annotation_text=label, annotation_position="top right",
-                    annotation_font_color=SEVERITY_COLORS[key.replace("umbral_","")])
-            fig_hist.update_layout(**PLOTLY_LAYOUT, height=320,
-                xaxis=dict(gridcolor="#334155"),
+
+            # Configurar qué líneas de umbral y qué rango del eje X mostrar según el filtro de severidad
+            if filtro_sev == "Normal":
+                keys_to_show = ["umbral_baja"]
+                x_min = 0.0
+                x_max = max(df_filtered["reconstruction_error"].max() * 1.08, umbrales["umbral_baja"] * 1.15) if len(df_filtered) else 0.1
+            elif filtro_sev == "Baja":
+                keys_to_show = ["umbral_baja", "umbral_media"]
+                x_min = min(df_filtered["reconstruction_error"].min(), umbrales["umbral_baja"]) * 0.96 if len(df_filtered) else 0.0
+                x_max = max(df_filtered["reconstruction_error"].max(), umbrales["umbral_media"]) * 1.04 if len(df_filtered) else 0.15
+            elif filtro_sev == "Media":
+                keys_to_show = ["umbral_media", "umbral_alta"]
+                x_min = min(df_filtered["reconstruction_error"].min(), umbrales["umbral_media"]) * 0.96 if len(df_filtered) else 0.05
+                x_max = max(df_filtered["reconstruction_error"].max(), umbrales["umbral_alta"]) * 1.04 if len(df_filtered) else 0.25
+            elif filtro_sev == "Alta":
+                keys_to_show = ["umbral_alta"]
+                x_min = umbrales["umbral_alta"] * 0.96
+                x_max = float(df_filtered["reconstruction_error"].quantile(0.99) * 1.15) if len(df_filtered) else umbrales["umbral_alta"] * 2.0
+            else:  # "Todas"
+                keys_to_show = ["umbral_baja", "umbral_media", "umbral_alta"]
+                x_min = 0.0
+                # Enfocar en el rango donde está la mayoría de datos sin comprimir todo
+                x_max = float(umbrales.get("umbral_alta", 0.5) * 2.5) if len(df_filtered) else 0.3
+
+            # Desplazamientos visuales de anotación para evitar colisiones
+            thresh_meta = {
+                "umbral_baja":  ("Baja",  "top left", 0),
+                "umbral_media": ("Media", "top right", -15),
+                "umbral_alta":  ("Alta",  "top right", 25),
+            }
+
+            for key in keys_to_show:
+                if key in umbrales and key in thresh_meta:
+                    label, pos, y_shift = thresh_meta[key]
+                    fig_hist.add_vline(
+                        x=umbrales[key],
+                        line_dash="dash",
+                        line_color=SEVERITY_COLORS[key.replace("umbral_", "")],
+                        annotation_text=f" <b>{label}</b>",
+                        annotation_position=pos,
+                        annotation_font_color=SEVERITY_COLORS[key.replace("umbral_", "")],
+                        annotation_font_size=10,
+                        annotation_yshift=y_shift,
+                    )
+
+            fig_hist.update_layout(**PLOTLY_LAYOUT, height=340,
+                xaxis=dict(gridcolor="#334155", range=[x_min, max(x_max, x_min + 0.05)]),
                 yaxis=dict(gridcolor="#334155", title="Frecuencia"),
                 legend=dict(title="Severidad"))
             st.plotly_chart(fig_hist, use_container_width=True)
@@ -464,11 +566,15 @@ if st.session_state.rol == "Técnico":
                 labels={"label": "Severidad", "monto": "Monto ($)"},
             )
             fig_risk.update_traces(textposition="outside", marker_line_width=0)
-            fig_risk.update_layout(**PLOTLY_LAYOUT, height=320, showlegend=False,
+            fig_risk.update_layout(**PLOTLY_LAYOUT, height=340, showlegend=False,
                 xaxis=dict(gridcolor="#334155"), yaxis=dict(gridcolor="#334155"))
             st.plotly_chart(fig_risk, use_container_width=True)
 
         st.markdown("#### Detalle de Transacciones")
+        d_col1, d_col2 = st.columns([3, 1])
+        with d_col2:
+            filas_opc = st.selectbox("Filas a mostrar", ["Todas (Sin límite)", 100, 500, 1000], index=0)
+
         display_cols = ["id_transaccion","split","monto_final","tipo_anomalia",
                         "reconstruction_error","severidad","prediccion_anomalia"]
         available_cols = [c for c in display_cols if c in df_filtered.columns]
@@ -483,7 +589,15 @@ if st.session_state.rol == "Técnico":
             "id_transaccion":"ID","split":"Split","monto_final":"Monto",
             "tipo_anomalia":"Tipo","reconstruction_error":"Error Reconstrucción",
             "severidad":"Severidad","prediccion_anomalia":"Predicción"})
-        st.dataframe(df_display.head(500), use_container_width=True, height=400)
+
+        if isinstance(filas_opc, int):
+            df_show_table = df_display.head(filas_opc)
+            st.caption(f"Mostrando {len(df_show_table):,} de {len(df_display):,} transacciones encontradas.")
+        else:
+            df_show_table = df_display
+            st.caption(f"Mostrando **todas las {len(df_show_table):,}** transacciones encontradas sin límite.")
+
+        st.dataframe(df_show_table, use_container_width=True, height=450)
         st.download_button("⬇️ Descargar resultados filtrados (.csv)",
             data=df_filtered.to_csv(index=False).encode("utf-8"),
             file_name="auditoria_filtrada.csv", mime="text/csv")
@@ -517,28 +631,19 @@ if st.session_state.rol == "Técnico":
             submitted = st.form_submit_button("🔍 Evaluar Venta", use_container_width=True)
 
         if submitted:
-            base_error = 0.035 + np.random.uniform(0.005, 0.015)
-            if monto > 200:
-                base_error += (monto - 200) / 1000.0 * 0.6
-            if monto < 1.0:
-                base_error += 0.04
-            if descuento > 0 and (descuento / max(monto, 1)) > 0.3:
-                base_error += (descuento / max(monto, 1)) * 0.15
-            if hora < 6 or hora > 22:
-                base_error += 0.025
-            if num_items > 20:
-                base_error += 0.02
-            rec_error = float(np.clip(base_error + np.random.normal(0, 0.003), 0.01, 1.0))
+            tx_data = {
+                "monto": monto,
+                "descuento": descuento,
+                "hora": hora,
+                "dia_semana": dia_semana,
+                "metodo_pago": metodo_pago,
+                "num_items": num_items,
+            }
+            resultado, performance = evaluate_raw_transaction(tx_data)
 
-            if rec_error >= umbrales["umbral_alta"]:
-                severidad = "alta"
-            elif rec_error >= umbrales["umbral_media"]:
-                severidad = "media"
-            elif rec_error >= umbrales["umbral_baja"]:
-                severidad = "baja"
-            else:
-                severidad = "normal"
-            es_anomalia = severidad != "normal"
+            rec_error = resultado["reconstruction_error"]
+            severidad = resultado["severidad"]
+            es_anomalia = resultado["es_anomalia"]
 
             st.markdown("---")
             st.markdown("### Resultado de la Evaluación")
@@ -573,10 +678,10 @@ if st.session_state.rol == "Técnico":
                         bar=dict(color=sev_color, thickness=0.3),
                         bgcolor="#1e293b", borderwidth=0,
                         steps=[
-                            dict(range=[0, umbrales["umbral_baja"]], color="#22c55e22"),
-                            dict(range=[umbrales["umbral_baja"], umbrales["umbral_media"]], color="#eab30822"),
-                            dict(range=[umbrales["umbral_media"], umbrales["umbral_alta"]], color="#f9731622"),
-                            dict(range=[umbrales["umbral_alta"], umbrales["umbral_alta"]*3], color="#ef444422"),
+                            dict(range=[0, umbrales["umbral_baja"]], color="rgba(34,197,94,0.13)"),
+                            dict(range=[umbrales["umbral_baja"], umbrales["umbral_media"]], color="rgba(234,179,8,0.13)"),
+                            dict(range=[umbrales["umbral_media"], umbrales["umbral_alta"]], color="rgba(249,115,22,0.13)"),
+                            dict(range=[umbrales["umbral_alta"], umbrales["umbral_alta"]*3], color="rgba(239,68,68,0.13)"),
                         ],
                         threshold=dict(line=dict(color=sev_color, width=3),
                                        thickness=0.8, value=rec_error),
@@ -639,6 +744,67 @@ if st.session_state.rol == "Técnico":
                           <div style="font-size:0.8rem;color:#94a3b8;margin-top:8px;">{rng}</div>
                         </div>""", unsafe_allow_html=True)
 
+
+
+    # ────────────────────────────────────────────────────────────────────────
+    # SECCIÓN 4 — LOGS Y RENDIMIENTO DEL SISTEMA
+    # ────────────────────────────────────────────────────────────────────────
+    elif seccion == "📜 Logs y Rendimiento Sistema":
+        st.markdown("## 📜 Logs y Rendimiento del Sistema")
+        st.markdown("Monitoreo de latencia, throughput, auditoría de eventos y pruebas de concurrencia multiusuario.")
+
+        l1, l2, l3 = st.columns(3)
+        with l1:
+            st.markdown(
+                """<div class="kpi-card">
+                  <div class="kpi-title">Inferencia y Modelo</div>
+                  <div class="kpi-value" style="color:#38bdf8;">PyTorch VAE</div>
+                  <div class="kpi-sub">Preprocesador: Scikit-Learn Joblib</div>
+                </div>""", unsafe_allow_html=True)
+        with l2:
+            st.markdown(
+                """<div class="kpi-card">
+                  <div class="kpi-title">Soporte Concurrente</div>
+                  <div class="kpi-value" style="color:#22c55e;">3+ Usuarios</div>
+                  <div class="kpi-sub">Thread-Safe & Async FastAPI</div>
+                </div>""", unsafe_allow_html=True)
+        with l3:
+            st.markdown(
+                """<div class="kpi-card">
+                  <div class="kpi-title">Archivo de Logs</div>
+                  <div class="kpi-value" style="color:#a78bfa;">app.log</div>
+                  <div class="kpi-sub">Ubicación: logs/app.log</div>
+                </div>""", unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        st.markdown("### 🔍 Logs en Tiempo Real")
+        if LOG_FILE.exists():
+            with open(LOG_FILE, "r", encoding="utf-8") as f:
+                logs_lines = [line.strip() for line in f.readlines() if line.strip()]
+            
+            num_logs = st.slider("Número de líneas a mostrar", 10, 200, 50)
+            logs_to_show = "\n".join(logs_lines[-num_logs:])
+            st.text_area("Eventos del sistema (logs/app.log):", value=logs_to_show, height=320)
+            st.caption(f"Mostrando las últimas {min(num_logs, len(logs_lines))} de {len(logs_lines)} entradas de log.")
+        else:
+            st.info("El archivo `logs/app.log` aún no contiene entradas.")
+
+        st.markdown("---")
+        st.markdown("### ⚡ Endpoints REST API (FastAPI Backend)")
+        st.markdown("""
+        El backend está preparado para ejecutarse con **Uvicorn** para atender peticiones concurrentes de 3 o más usuarios simultáneamente:
+        - `GET /health` — Verificación de estado de la API y modelo
+        - `POST /evaluate` — Inferencia individual en vivo (PyTorch)
+        - `POST /batch` — Procesamiento por lotes de CSV/Excel con throughput
+        - `GET /metrics` — Métricas de precisión, recall, F1 y monto en riesgo
+        - `GET /logs` — Consulta remota de logs de auditoría
+
+        Para iniciar el servidor API de FastAPI:
+        ```bash
+        uvicorn src.api:app --host 0.0.0.0 --port 8000 --reload
+        ```
+        """)
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -717,43 +883,13 @@ elif st.session_state.rol == "Negocio":
             )
             st.stop()
 
-        # ── Simulación del procesamiento VAE ─────────────────────────────────
-        with st.spinner("Analizando transacciones con el modelo VAE..."):
-            np.random.seed(42)
-            n = len(df_rosita)
-
-            # Error base + señales heurísticas por columna
-            base = np.random.uniform(0.03, 0.055, n)
-
-            if "monto" in df_rosita.columns:
-                montos = pd.to_numeric(df_rosita["monto"], errors="coerce").fillna(0)
-                base += np.where(montos > 200, (montos - 200) / 1000 * 0.5, 0)
-                base += np.where(montos < 1.0, 0.04, 0)
-
-            if "descuento_pct" in df_rosita.columns:
-                desc = pd.to_numeric(df_rosita["descuento_pct"], errors="coerce").fillna(0)
-                base += np.where(desc > 30, (desc - 30) / 100 * 0.12, 0)
-
-            if "fecha_hora" in df_rosita.columns:
-                try:
-                    horas = pd.to_datetime(df_rosita["fecha_hora"], errors="coerce").dt.hour.fillna(12)
-                    base += np.where((horas < 6) | (horas > 22), 0.025, 0)
-                except Exception:
-                    pass
-
-            rec_errors = np.clip(base + np.random.normal(0, 0.004, n), 0.01, 1.0)
-
-            # Umbrales desde el JSON del modelo
-            umbrales_neg = load_umbrales()
-            def classify(err):
-                if err >= umbrales_neg["umbral_alta"]:  return "alta"
-                if err >= umbrales_neg["umbral_media"]: return "media"
-                if err >= umbrales_neg["umbral_baja"]:  return "baja"
-                return "normal"
-
-            df_rosita["_error_vae"]  = rec_errors
-            df_rosita["_severidad"]  = [classify(e) for e in rec_errors]
+        # ── Procesamiento VAE PyTorch Real ───────────────────────────────────
+        with st.spinner("Analizando transacciones con el modelo VAE de PyTorch real..."):
+            df_proc, performance_rosita = process_raw_batch(df_rosita)
+            df_rosita["_error_vae"] = df_proc["reconstruction_error"]
+            df_rosita["_severidad"] = df_proc["severidad"]
             df_rosita["_es_anomalia"] = df_rosita["_severidad"].apply(lambda s: s != "normal")
+            n = len(df_rosita)
 
         st.success(f"✅ Análisis completado — **{n:,}** transacciones procesadas.")
         st.markdown("---")
@@ -877,6 +1013,12 @@ elif st.session_state.rol == "Negocio":
         st.markdown("### 📋 Tabla de Resultados")
         st.caption("Las transacciones están ordenadas por nivel de alerta (Altas primero).")
 
+        r_fil1, r_fil2 = st.columns([2, 1])
+        with r_fil1:
+            busqueda_rosita = st.text_input("🔍 Buscar por Cajero, Mesa, Tipo o ID", placeholder="Ej: Cajero_1 o Mesa_3")
+        with r_fil2:
+            filas_rosita_opc = st.selectbox("Filas a mostrar (Rosita)", ["Todas (Sin límite)", 500, 1000], index=0)
+
         # Orden de severidad para sort
         SEV_SORT = {"alta": 0, "media": 1, "baja": 2, "normal": 3}
         df_rosita["_sev_order"] = df_rosita["_severidad"].map(SEV_SORT)
@@ -890,6 +1032,13 @@ elif st.session_state.rol == "Negocio":
             .rename(columns={"_sev_simple": "estado"})
             .reset_index(drop=True)
         )
+
+        if busqueda_rosita.strip():
+            q_r = busqueda_rosita.strip().lower()
+            mask = pd.Series(False, index=df_result.index)
+            for c in df_result.columns:
+                mask |= df_result[c].astype(str).str.lower().str.contains(q_r)
+            df_result = df_result[mask]
 
         # Mapear etiquetas amigables
         df_result["estado"] = df_result["estado"].map(
@@ -911,14 +1060,15 @@ elif st.session_state.rol == "Negocio":
             else:
                 return [f"background-color:#22c55e15; color:#86efac"] * len(row)
 
-        # Limitar a 1000 filas para rendimiento
-        df_show = df_result.head(1000)
+        if isinstance(filas_rosita_opc, int):
+            df_show = df_result.head(filas_rosita_opc)
+            st.caption(f"Mostrando {len(df_show):,} de {len(df_result):,} transacciones.")
+        else:
+            df_show = df_result
+            st.caption(f"Mostrando **todas las {len(df_show):,}** transacciones procesadas sin límite.")
+
         styled_df = df_show.style.apply(style_row, axis=1)
-
         st.dataframe(styled_df, use_container_width=True, height=450, hide_index=True)
-
-        if len(df_result) > 1000:
-            st.caption(f"Mostrando las primeras 1,000 filas de {len(df_result):,} totales. Descarga el reporte para ver todas.")
 
         # ── Botón de descarga Excel ────────────────────────────────────────────
         st.markdown("---")
