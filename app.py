@@ -1,24 +1,53 @@
 """
-Auditor de Ventas Inteligente — VAE Frontend
+ZeroAnomalías — VAE Frontend
 Streamlit app con sistema de login y dos perfiles: Técnico y Negocio.
 """
+# pylint: disable=line-too-long
+# Varias líneas largas son bloques de HTML/CSS dentro de f-strings para las
+# tarjetas KPI y el tema oscuro. Partirlas a la mitad las volvería HTML
+# inválido o forzaría concatenaciones que complican más de lo que ayudan.
+#
+# pylint: disable=use-dict-literal
+# Los dict(...) de Plotly (go.Figure, layout, marker, etc.) se dejan como
+# llamada a dict() en vez de {...} literal a propósito: es el estilo que usa
+# la documentación oficial de Plotly y así queda igual en todo el archivo.
+# No cambia el comportamiento, solo el estilo de escritura.
+#
+# pylint: disable=invalid-name
+# Este archivo es un script de Streamlit: la mayoría de "constantes" que
+# Pylint detecta (ej. umbrales, dataframes, figuras) en realidad son
+# variables normales dentro del flujo secuencial de la página, no
+# constantes de módulo. Forzar MAYUSCULAS en todas rompería la legibilidad
+# del código sin aportar nada.
+#
+# pylint: disable=too-many-lines
+# El archivo agrupa las 3 secciones del perfil Técnico y el perfil de
+# Negocio en un solo script de Streamlit (así arrancó el proyecto). Partirlo
+# en módulos es una mejora válida a futuro, pero implica reestructurar el
+# manejo de session_state y no se hace a días de la sustentación para no
+# arriesgar nada que ya funciona y está probado.
 import json
 import io
-import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
-from src.logger import log_info, log_warning, log_error, LOG_FILE
-from src.audit_service import process_batch, evaluate_transaction, evaluate_raw_transaction, process_raw_batch
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
+from src.logger import log_info, log_warning, LOG_FILE
+from src.audit_service import process_batch, evaluate_raw_transaction, process_raw_batch
 
 # ── Configuración de página ──────────────────────────────────────────────────
 st.set_page_config(
-    page_title="Auditor de Ventas Inteligente",
-    page_icon="🔍",
+    page_title="ZeroAnomalías",
+    page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+LOGO_FULL = "assets/logo_zeroanomalias.jpeg"
+LOGO_ICON = "assets/logo_icon_only.png"
 
 # ── Paleta de colores de severidad ───────────────────────────────────────────
 SEVERITY_COLORS = {
@@ -29,6 +58,114 @@ SEVERITY_COLORS = {
 }
 SEVERITY_ORDER = ["normal", "baja", "media", "alta"]
 SEV_LABELS     = {"normal": "Normal", "baja": "Baja", "media": "Media", "alta": "Alta"}
+
+# ── Paleta para los reportes Excel descargables (mismos tonos que el dashboard) ──
+EXCEL_FILL_HEX = {
+    "normal": "DCFCE7",  # verde pastel
+    "baja":   "FEF9C3",  # amarillo pastel
+    "media":  "FFEDD5",  # naranja pastel
+    "alta":   "FEE2E2",  # rojo pastel
+}
+EXCEL_FONT_HEX = {
+    "normal": "166534",
+    "baja":   "854D0E",
+    "media":  "9A3412",
+    "alta":   "991B1B",
+}
+
+
+def build_styled_excel_bytes(sheets):  # pylint: disable=too-many-locals,too-many-statements
+    # Función de formateo de Excel: recorre cada hoja, cada fila y cada
+    # columna aplicando fuente/color/borde/formato, así que naturalmente usa
+    # más variables y líneas de las que Pylint recomienda por defecto.
+    # Partirla en sub-funciones más pequeñas no simplifica nada, solo mueve
+    # el mismo trabajo a otro lugar.
+    """
+    Genera un Excel (.xlsx) descargable con encabezado oscuro, encabezado
+    congelado, filtros automáticos, columnas autoajustadas y filas coloreadas
+    por severidad — mismo lenguaje visual que el resto del dashboard.
+
+    `sheets` es una lista de dicts, cada uno puede traer:
+      - name (str, obligatorio): nombre de la pestaña (máx. 31 caracteres)
+      - df (DataFrame, obligatorio): datos ya con encabezados amigables
+      - sev_series (Series, opcional): severidad ("normal"/"baja"/"media"/
+        "alta") alineada por posición con `df`, para colorear cada fila
+      - currency_cols (list[str], opcional): columnas a formatear como $
+      - decimal_cols (list[str], opcional): columnas a formatear con 6 decimales
+      - highlight_col / highlight_values (opcional): resalta filas de una
+        hoja resumen sin severidad (ej. la fila de "Posibles pérdidas")
+
+    Devuelve un BytesIO listo para pasar a st.download_button.
+    """
+    wb = Workbook()
+    wb.remove(wb.active)
+
+    header_font = Font(name="Arial", bold=True, color="FFFFFF", size=11)
+    header_fill = PatternFill("solid", fgColor="1E293B")
+    header_align = Alignment(horizontal="center", vertical="center")
+    default_font = Font(name="Arial", size=10)
+    thin = Side(style="thin", color="D9D9D9")
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    for sheet in sheets:
+        df = sheet["df"]
+        sev_series = sheet.get("sev_series")
+        currency_cols = sheet.get("currency_cols", [])
+        decimal_cols = sheet.get("decimal_cols", [])
+        highlight_col = sheet.get("highlight_col")
+        highlight_values = [v.lower() for v in sheet.get("highlight_values", [])]
+
+        ws = wb.create_sheet(title=sheet["name"][:31])
+
+        for c_idx, col_name in enumerate(df.columns, start=1):
+            cell = ws.cell(row=1, column=c_idx, value=col_name)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = header_align
+            cell.border = border
+        ws.row_dimensions[1].height = 22
+
+        for r_idx, (_, row) in enumerate(df.iterrows(), start=2):
+            row_sev = None
+            if sev_series is not None and (r_idx - 2) < len(sev_series):
+                row_sev = str(sev_series.iloc[r_idx - 2]).lower()
+
+            row_is_highlight = False
+            if highlight_col and highlight_col in df.columns:
+                cell_text = str(row[highlight_col]).lower()
+                row_is_highlight = any(v in cell_text for v in highlight_values)
+
+            for c_idx, col_name in enumerate(df.columns, start=1):
+                cell = ws.cell(row=r_idx, column=c_idx, value=row[col_name])
+                cell.border = border
+
+                if row_sev in EXCEL_FILL_HEX:
+                    cell.fill = PatternFill("solid", fgColor=EXCEL_FILL_HEX[row_sev])
+                    cell.font = Font(name="Arial", size=10, color=EXCEL_FONT_HEX[row_sev])
+                elif row_is_highlight:
+                    cell.fill = PatternFill("solid", fgColor=EXCEL_FILL_HEX["alta"])
+                    cell.font = Font(name="Arial", size=10, bold=True, color=EXCEL_FONT_HEX["alta"])
+                else:
+                    cell.font = default_font
+
+                if col_name in currency_cols:
+                    cell.number_format = '"$"#,##0.00'
+                elif col_name in decimal_cols:
+                    cell.number_format = "0.000000"
+
+        ws.freeze_panes = "A2"
+        ws.auto_filter.ref = ws.dimensions
+
+        for c_idx, col_name in enumerate(df.columns, start=1):
+            col_letter = get_column_letter(c_idx)
+            values_len = [len(str(v)) for v in df[col_name].astype(str).tolist()]
+            max_len = max([len(str(col_name))] + values_len) if values_len else len(str(col_name))
+            ws.column_dimensions[col_letter].width = min(max(max_len + 3, 12), 42)
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    return buf
 
 # ── Credenciales hardcoded ────────────────────────────────────────────────────
 USERS = {
@@ -107,15 +244,14 @@ PLOTLY_LAYOUT = dict(
 # PANTALLA DE LOGIN
 # ════════════════════════════════════════════════════════════════════════════
 def show_login():
+    """Renderiza la pantalla de inicio de sesión."""
     # Centrar el formulario con columnas
     _, center, _ = st.columns([1, 1.2, 1])
     with center:
+        st.markdown('<div style="padding-top:24px;"></div>', unsafe_allow_html=True)
+        st.image(LOGO_FULL, use_container_width=True)
         st.markdown("""
-        <div style="text-align:center; padding: 40px 0 20px;">
-          <div style="font-size:3rem;">🔍</div>
-          <h1 style="color:#f1f5f9; font-size:1.7rem; margin:8px 0 4px;">
-            Auditor de Ventas Inteligente
-          </h1>
+        <div style="text-align:center; padding: 0 0 20px;">
           <p style="color:#64748b; font-size:0.9rem;">
             Ingresa tus credenciales para continuar
           </p>
@@ -126,9 +262,9 @@ def show_login():
             usuario = st.text_input("👤 Usuario", placeholder="Ingresa tu usuario")
             clave   = st.text_input("🔒 Contraseña", type="password",
                                     placeholder="Ingresa tu contraseña")
-            submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True)
+            login_submitted = st.form_submit_button("Iniciar Sesión", use_container_width=True)
 
-            if submitted:
+            if login_submitted:
                 user_data = USERS.get(usuario.strip().lower())
 
                 if user_data and clave == user_data["password"]:
@@ -171,25 +307,40 @@ if not st.session_state.logged_in:
 # ── Carga de datos con caché (solo para rol Técnico) ─────────────────────────
 @st.cache_data
 def load_metricas():
+    """Carga las métricas de evaluación del modelo (precision, recall, F1, etc.)."""
     with open("reports/metricas_evaluacion.json", encoding="utf-8") as f:
         return json.load(f)
 
 @st.cache_data
 def load_transacciones():
+    """Carga el CSV de transacciones ya evaluadas por el modelo VAE."""
     return pd.read_csv("reports/evaluacion_transacciones.csv")
 
 @st.cache_data
 def load_training_history():
+    """Carga el historial de pérdida (loss) del entrenamiento del VAE."""
     return pd.read_csv("reports/vae_training_history.csv")
 
 @st.cache_data
 def load_umbrales():
+    """Carga los umbrales de severidad (baja/media/alta) calibrados en validación."""
     with open("reports/umbral_severidad.json", encoding="utf-8") as f:
         return json.load(f)
 
 
 # ── Sidebar compartido (botón de logout) ─────────────────────────────────────
 with st.sidebar:
+    lc_a, lc_b, lc_c = st.columns([1, 2, 1])
+    with lc_b:
+        st.image(LOGO_ICON, use_container_width=True)
+    st.markdown(
+        """<div style="text-align:center; font-weight:800; color:#f1f5f9;
+                    font-size:1.05rem; letter-spacing:0.02em; margin-top:-8px;">
+            ZeroAnomalías
+          </div>""",
+        unsafe_allow_html=True,
+    )
+
     rol_icon = "🛠️" if st.session_state.rol == "Técnico" else "🍽️"
     st.markdown(
         f"""
@@ -598,9 +749,37 @@ if st.session_state.rol == "Técnico":
             st.caption(f"Mostrando **todas las {len(df_show_table):,}** transacciones encontradas sin límite.")
 
         st.dataframe(df_show_table, use_container_width=True, height=450)
-        st.download_button("⬇️ Descargar resultados filtrados (.csv)",
-            data=df_filtered.to_csv(index=False).encode("utf-8"),
-            file_name="auditoria_filtrada.csv", mime="text/csv")
+
+        # ── Descarga en Excel, ordenada, coloreada por severidad y con filtros ──
+        df_export = df_filtered[available_cols].copy()
+        if "prediccion_anomalia" in df_export.columns:
+            df_export["prediccion_anomalia"] = df_export["prediccion_anomalia"].map(
+                {0: "Normal", 1: "Anomalía"})
+        sev_export_series = (
+            df_filtered["severidad"].str.lower() if "severidad" in df_filtered.columns else None
+        )
+        df_export = df_export.rename(columns={
+            "id_transaccion": "ID", "split": "Split", "monto_final": "Monto ($)",
+            "tipo_anomalia": "Tipo", "reconstruction_error": "Error Reconstrucción",
+            "severidad": "Severidad", "prediccion_anomalia": "Predicción",
+        })
+        if "Severidad" in df_export.columns:
+            df_export["Severidad"] = df_export["Severidad"].str.capitalize()
+
+        excel_bytes = build_styled_excel_bytes([{
+            "name": "Auditoría Filtrada",
+            "df": df_export,
+            "sev_series": sev_export_series,
+            "currency_cols": ["Monto ($)"],
+            "decimal_cols": ["Error Reconstrucción"],
+        }])
+
+        st.download_button(
+            "⬇️ Descargar resultados filtrados (.xlsx)",
+            data=excel_bytes,
+            file_name="auditoria_filtrada.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
 
 
     # ────────────────────────────────────────────────────────────────────────
@@ -610,7 +789,7 @@ if st.session_state.rol == "Técnico":
         st.markdown("## ⚡ Verificar Venta")
         st.markdown(
             "Ingresa los datos de una transacción. "
-            "El sistema simulará el error de reconstrucción del VAE y clasificará su severidad."
+            "El sistema calculará el error de reconstrucción con el modelo VAE real y clasificará su severidad."
         )
         with st.form("form_live"):
             st.markdown("### Datos de la Transacción")
@@ -780,9 +959,9 @@ if st.session_state.rol == "Técnico":
 
         st.markdown("### 🔍 Logs en Tiempo Real")
         if LOG_FILE.exists():
-            with open(LOG_FILE, "r", encoding="utf-8") as f:
-                logs_lines = [line.strip() for line in f.readlines() if line.strip()]
-            
+            with open(LOG_FILE, "r", encoding="utf-8") as log_f:
+                logs_lines = [line.strip() for line in log_f.readlines() if line.strip()]
+
             num_logs = st.slider("Número de líneas a mostrar", 10, 200, 50)
             logs_to_show = "\n".join(logs_lines[-num_logs:])
             st.text_area("Eventos del sistema (logs/app.log):", value=logs_to_show, height=320)
@@ -819,7 +998,7 @@ elif st.session_state.rol == "Negocio":
         <div style="font-size:3rem;">🍽️</div>
         <div>
           <h1 style="color:#f97316; margin:0; font-size:1.8rem;">
-            Auditor de Ventas — Restaurante Rosita
+            ZeroAnomalías — Restaurante Rosita
           </h1>
           <p style="color:#94a3b8; margin:4px 0 0; font-size:0.95rem;">
             Bienvenida, Rosita. Sube tu reporte de ventas y el sistema identificará
@@ -868,7 +1047,10 @@ elif st.session_state.rol == "Negocio":
     if excel_file is not None:
         try:
             df_rosita = pd.read_excel(excel_file)
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            # Intencional: pd.read_excel puede fallar por muchas causas distintas
+            # (ImportError de openpyxl, archivo corrupto, formato inválido, etc.)
+            # y queremos un único mensaje amigable para la usuaria de negocio.
             st.error(f"No se pudo leer el archivo: {e}")
             st.stop()
 
@@ -888,7 +1070,10 @@ elif st.session_state.rol == "Negocio":
             df_proc, performance_rosita = process_raw_batch(df_rosita)
             df_rosita["_error_vae"] = df_proc["reconstruction_error"]
             df_rosita["_severidad"] = df_proc["severidad"]
-            df_rosita["_es_anomalia"] = df_rosita["_severidad"].apply(lambda s: s != "normal")
+            # "baja" se agrupa visualmente con "normal" en el perfil de Negocio
+            # (ver simplify_sev más abajo). _es_anomalia usa esa MISMA definición
+            # simplificada para que el KPI de arriba y el gráfico de abajo coincidan.
+            df_rosita["_es_anomalia"] = df_rosita["_severidad"].isin(["media", "alta"])
             n = len(df_rosita)
 
         st.success(f"✅ Análisis completado — **{n:,}** transacciones procesadas.")
@@ -897,7 +1082,7 @@ elif st.session_state.rol == "Negocio":
         # ── KPIs ──────────────────────────────────────────────────────────────
         st.markdown("### 📈 Resumen Ejecutivo")
 
-        # Transacciones con cualquier alerta (baja, media, alta)
+        # Transacciones con alerta real (media o alta) — "baja" cuenta como normal aquí
         anomalias_r = df_rosita[df_rosita["_es_anomalia"]].copy()
 
         # "Posibles pérdidas" = solo transacciones comprometidas: severidad media o alta
@@ -954,6 +1139,7 @@ elif st.session_state.rol == "Negocio":
 
         # Agrupamos "baja" dentro de "normal" para simplificar la vista de negocio
         def simplify_sev(s):
+            """Agrupa la severidad 'baja' dentro de 'normal' para la vista de Negocio."""
             return s if s in ("normal", "media", "alta") else "normal"
 
         df_rosita["_sev_simple"] = df_rosita["_severidad"].apply(simplify_sev)
@@ -1040,82 +1226,110 @@ elif st.session_state.rol == "Negocio":
                 mask |= df_result[c].astype(str).str.lower().str.contains(q_r)
             df_result = df_result[mask]
 
-        # Mapear etiquetas amigables
-        df_result["estado"] = df_result["estado"].map(
+        # df_result se queda con los valores originales (estado en minúscula,
+        # monto numérico) para el Excel. df_screen es una copia solo para
+        # mostrar en pantalla, con emojis y monto formateado como texto.
+        df_screen = df_result.copy()
+
+        # Mapear etiquetas amigables (solo en pantalla)
+        df_screen["estado"] = df_screen["estado"].map(
             {"normal": "✅ Normal", "media": "⚠️ Alerta Media", "alta": "🚨 Alerta Alta"})
 
-        # Formatear monto
-        if "monto" in df_result.columns:
-            df_result["monto"] = df_result["monto"].apply(
+        # Formatear monto (solo en pantalla)
+        if "monto" in df_screen.columns:
+            df_screen["monto"] = df_screen["monto"].apply(
                 lambda x: f"${pd.to_numeric(x, errors='coerce'):,.2f}"
                 if pd.notna(pd.to_numeric(x, errors='coerce')) else x)
 
         # Función de estilos por fila según estado
         def style_row(row):
+            """Devuelve el color de fondo de la fila según su estado de severidad."""
             estado = str(row.get("estado", ""))
             if "Alerta Alta" in estado:
-                return [f"background-color:#ef444420; color:#fca5a5"] * len(row)
-            elif "Alerta Media" in estado:
-                return [f"background-color:#f9731620; color:#fdba74"] * len(row)
-            else:
-                return [f"background-color:#22c55e15; color:#86efac"] * len(row)
+                return ["background-color:#ef444420; color:#fca5a5"] * len(row)
+            if "Alerta Media" in estado:
+                return ["background-color:#f9731620; color:#fdba74"] * len(row)
+            return ["background-color:#22c55e15; color:#86efac"] * len(row)
 
         if isinstance(filas_rosita_opc, int):
-            df_show = df_result.head(filas_rosita_opc)
-            st.caption(f"Mostrando {len(df_show):,} de {len(df_result):,} transacciones.")
+            df_show = df_screen.head(filas_rosita_opc)
+            st.caption(f"Mostrando {len(df_show):,} de {len(df_screen):,} transacciones.")
         else:
-            df_show = df_result
+            df_show = df_screen
             st.caption(f"Mostrando **todas las {len(df_show):,}** transacciones procesadas sin límite.")
 
         styled_df = df_show.style.apply(style_row, axis=1)
         st.dataframe(styled_df, use_container_width=True, height=450, hide_index=True)
 
-        # ── Botón de descarga Excel ────────────────────────────────────────────
+        # ── Botón de descarga Excel: ordenado, coloreado por severidad y con filtros ──
         st.markdown("---")
         st.markdown("### ⬇️ Descargar Reporte Procesado")
 
-        # Preparar Excel de salida
-        output_excel = io.BytesIO()
-        with pd.ExcelWriter(output_excel, engine="openpyxl") as writer:
-            # Hoja principal: todos los resultados
-            df_result.to_excel(writer, index=False, sheet_name="Reporte Completo")
-            # Hoja solo alertas
-            df_alertas = df_result[~df_result["estado"].str.contains("Normal")]
-            df_alertas.to_excel(writer, index=False, sheet_name="Solo Alertas")
-            # Hoja resumen
-            resumen = pd.DataFrame({
-                "Métrica": [
-                    "Total transacciones revisadas",
-                    "Alertas detectadas",
-                    "% de alertas",
-                    "Posibles pérdidas (monto en riesgo)",
-                    "  → Criterio",
-                ],
-                "Valor": [
-                    total_tx,
-                    n_anomalias,
-                    f"{pct_riesgo:.1f}%",
-                    f"${monto_riesgo_r:,.2f}",
-                    "Suma de montos con severidad Media o Alta únicamente",
-                ],
-            })
-            resumen.to_excel(writer, index=False, sheet_name="Resumen Ejecutivo")
-        output_excel.seek(0)
+        COLS_RENAME_ROSITA = {
+            "id_transaccion": "ID Transacción", "fecha_hora": "Fecha y Hora",
+            "cajero": "Cajero", "mesa": "Mesa", "monto": "Monto ($)",
+            "descuento_pct": "Descuento (%)", "metodo_pago": "Método de Pago",
+            "tipo_transaccion": "Tipo de Transacción", "estado": "Severidad",
+        }
+
+        # Hoja 1: reporte completo (valores reales, no texto formateado)
+        sev_completo = df_result["estado"].str.lower()
+        df_excel_completo = df_result.rename(columns=COLS_RENAME_ROSITA)
+        df_excel_completo["Severidad"] = df_excel_completo["Severidad"].str.capitalize()
+
+        # Hoja 2: solo alertas (media o alta)
+        df_result_alertas = df_result[df_result["estado"] != "normal"].copy()
+        sev_alertas = df_result_alertas["estado"].str.lower()
+        df_excel_alertas = df_result_alertas.rename(columns=COLS_RENAME_ROSITA)
+        df_excel_alertas["Severidad"] = df_excel_alertas["Severidad"].str.capitalize()
+
+        # Hoja 3: resumen ejecutivo (la fila de pérdidas se resalta en rojo)
+        df_resumen = pd.DataFrame({
+            "Métrica": [
+                "Total transacciones revisadas",
+                "Alertas detectadas",
+                "% de alertas",
+                "Posibles pérdidas (monto en riesgo)",
+                "  → Criterio",
+            ],
+            "Valor": [
+                total_tx,
+                n_anomalias,
+                f"{pct_riesgo:.1f}%",
+                f"${monto_riesgo_r:,.2f}",
+                "Suma de montos con severidad Media o Alta únicamente",
+            ],
+        })
+
+        excel_bytes_rosita = build_styled_excel_bytes([
+            {
+                "name": "Reporte Completo", "df": df_excel_completo,
+                "sev_series": sev_completo, "currency_cols": ["Monto ($)"],
+            },
+            {
+                "name": "Solo Alertas", "df": df_excel_alertas,
+                "sev_series": sev_alertas, "currency_cols": ["Monto ($)"],
+            },
+            {
+                "name": "Resumen Ejecutivo", "df": df_resumen,
+                "highlight_col": "Métrica", "highlight_values": ["Pérdidas"],
+            },
+        ])
 
         dcol1, dcol2 = st.columns([2, 1])
         with dcol1:
             st.download_button(
                 label="⬇️  Descargar reporte completo en Excel (.xlsx)",
-                data=output_excel,
+                data=excel_bytes_rosita,
                 file_name="reporte_auditoria_rosita.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 use_container_width=True,
             )
         with dcol2:
             st.markdown(
-                f"""<div style="background:#1e293b; border:1px solid #334155;
+                """<div style="background:#1e293b; border:1px solid #334155;
                     border-radius:8px; padding:12px 16px; font-size:0.82rem; color:#94a3b8;">
-                  📄 3 hojas incluidas:<br>
+                  📄 3 hojas incluidas (coloreadas y con filtros):<br>
                   • Reporte Completo<br>
                   • Solo Alertas<br>
                   • Resumen Ejecutivo
@@ -1134,4 +1348,3 @@ elif st.session_state.rol == "Negocio":
           </p>
         </div>
         """, unsafe_allow_html=True)
-
