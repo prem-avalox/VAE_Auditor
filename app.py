@@ -98,7 +98,17 @@ def explicar_anomalia(row, estilo="tecnico"):  # pylint: disable=too-many-branch
     if severidad in ("", "normal", "nan"):
         return ""
 
-    # 1) Si existe la categoría real (solo en el dataset de evaluación), es
+    # 1) Explicación basada en el modelo real: qué variable(s) concentraron
+    #    más error de reconstrucción para ESTA transacción específica
+    #    (calculada en src/audit_service.py). Es la más precisa porque sale
+    #    directo del VAE, no de reglas a mano, y sí detecta combinaciones
+    #    de factores (ej. "hora + mesa" juntos), no solo uno a la vez.
+    motivo_col = "motivo_tecnico" if estilo == "tecnico" else "motivo_negocio"
+    motivo_desde_modelo = row.get(motivo_col)
+    if isinstance(motivo_desde_modelo, str) and motivo_desde_modelo.strip():
+        return motivo_desde_modelo
+
+    # 2) Si existe la categoría real (solo en el dataset de evaluación), es
     #    la explicación más precisa posible: el motivo con el que esa
     #    transacción fue generada.
     tipo_real = row.get("tipo_anomalia")
@@ -106,8 +116,9 @@ def explicar_anomalia(row, estilo="tecnico"):  # pylint: disable=too-many-branch
         etiquetas = TIPO_ANOMALIA_TECNICO if estilo == "tecnico" else TIPO_ANOMALIA_NEGOCIO
         return etiquetas.get(tipo_real.lower(), tipo_real.replace("_", " ").capitalize())
 
-    # 2) Sin etiqueta real (datos nuevos): inferir con reglas sobre los
-    #    campos crudos disponibles.
+    # 3) Sin lo anterior: inferir con reglas simples sobre los campos crudos
+    #    disponibles (respaldo para cuando el error está muy repartido y el
+    #    modelo no señala una variable dominante clara).
     monto = row.get("monto", row.get("monto_final"))  # pylint: disable=redefined-outer-name
     descuento_monto = row.get("descuento")
     descuento_pct = row.get("descuento_pct")
@@ -1029,21 +1040,31 @@ if st.session_state.rol == "Técnico":
 
             if es_anomalia:
                 st.markdown("#### Factores que contribuyen a la anomalía")
-                factores = []
-                if monto > 200:
-                    factores.append(f"💰 Monto elevado (${monto:.2f}) supera el umbral típico de $200")
-                if monto < 1.0:
-                    factores.append(f"💸 Monto muy bajo (${monto:.2f}) — posible error o transacción de prueba")
-                if descuento > 0 and (descuento / max(monto,1)) > 0.3:
-                    factores.append(f"🎟️ Descuento del {descuento/max(monto,1)*100:.0f}% supera el 30% permitido")
-                if hora < 6 or hora > 22:
-                    factores.append(f"🕐 Hora inusual ({hora:02d}:00) fuera del horario de operación normal")
-                if num_items > 20:
-                    factores.append(f"📦 Número de ítems ({num_items}) inusualmente alto")
-                if not factores:
-                    factores.append("📊 Patrón general inusual detectado por el VAE")
-                for f_msg in factores:
-                    st.warning(f_msg)
+                motivo_modelo = resultado.get("motivo_tecnico")
+                if motivo_modelo:
+                    st.warning(
+                        f"📊 Según el error de reconstrucción del VAE, lo que más se "
+                        f"desvió de lo normal fue: **{motivo_modelo}**"
+                    )
+                else:
+                    # Respaldo: el error está repartido entre varias variables sin
+                    # que ninguna concentre una parte clara — se listan indicios
+                    # adicionales calculados a mano, sin inventar una causa única.
+                    factores = []
+                    if monto > 200:
+                        factores.append(f"💰 Monto elevado (${monto:.2f}) supera el umbral típico de $200")
+                    if monto < 1.0:
+                        factores.append(f"💸 Monto muy bajo (${monto:.2f}) — posible error o transacción de prueba")
+                    if descuento > 0 and (descuento / max(monto,1)) > 0.3:
+                        factores.append(f"🎟️ Descuento del {descuento/max(monto,1)*100:.0f}% supera el 30% permitido")
+                    if hora < 6 or hora > 22:
+                        factores.append(f"🕐 Hora inusual ({hora:02d}:00) fuera del horario de operación normal")
+                    if num_items > 20:
+                        factores.append(f"📦 Número de ítems ({num_items}) inusualmente alto")
+                    if not factores:
+                        factores.append("📊 Patrón general inusual detectado por el VAE, repartido entre varias variables")
+                    for f_msg in factores:
+                        st.warning(f_msg)
             else:
                 st.success("La transacción está dentro de los patrones normales. No se detectaron anomalías.")
         else:
@@ -1246,8 +1267,16 @@ elif st.session_state.rol == "Negocio":
         # ── Procesamiento VAE PyTorch Real ───────────────────────────────────
         with st.spinner("Analizando transacciones con el modelo VAE de PyTorch real..."):
             df_proc, performance_rosita = process_raw_batch(df_rosita)
-            df_rosita["_error_vae"] = df_proc["reconstruction_error"]
-            df_rosita["_severidad"] = df_proc["severidad"]
+            # OJO: process_raw_batch reordena internamente por error de
+            # reconstrucción (mayor a menor) y resetea el índice. Copiar las
+            # columnas de vuelta por posición mezclaba la severidad de una
+            # transacción con los datos de otra. Se une por id_transaccion,
+            # que es estable sin importar el orden interno.
+            df_proc_por_id = df_proc.set_index("id_transaccion")
+            df_rosita["_error_vae"] = df_rosita["id_transaccion"].map(df_proc_por_id["reconstruction_error"])
+            df_rosita["_severidad"] = df_rosita["id_transaccion"].map(df_proc_por_id["severidad"])
+            df_rosita["motivo_tecnico"] = df_rosita["id_transaccion"].map(df_proc_por_id["motivo_tecnico"])
+            df_rosita["motivo_negocio"] = df_rosita["id_transaccion"].map(df_proc_por_id["motivo_negocio"])
             # "baja" se agrupa visualmente con "normal" en el perfil de Negocio
             # (ver simplify_sev más abajo). _es_anomalia usa esa MISMA definición
             # simplificada para que el KPI de arriba y el gráfico de abajo coincidan.
@@ -1390,7 +1419,7 @@ elif st.session_state.rol == "Negocio":
         # Seleccionar columnas de negocio (originales + estado)
         cols_negocio = [c for c in REQUIRED_COLS if c in df_rosita.columns]
         df_result = (
-            df_rosita[cols_negocio + ["_sev_simple", "_sev_order"]]
+            df_rosita[cols_negocio + ["_sev_simple", "_sev_order", "motivo_tecnico", "motivo_negocio"]]
             .sort_values("_sev_order")
             .drop(columns=["_sev_order"])
             .rename(columns={"_sev_simple": "estado"})
@@ -1412,6 +1441,8 @@ elif st.session_state.rol == "Negocio":
         # Motivo en lenguaje simple (calculado ANTES de formatear monto/estado
         # para pantalla, usando los valores numéricos reales)
         motivo_rosita = df_result.apply(lambda r: explicar_anomalia(r, estilo="negocio"), axis=1)
+        df_result = df_result.drop(columns=["motivo_tecnico", "motivo_negocio"])
+        df_screen = df_screen.drop(columns=["motivo_tecnico", "motivo_negocio"])
         df_result["motivo"] = motivo_rosita.values
         df_screen["motivo"] = motivo_rosita.values
 

@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 import joblib
 import torch
-import torch.nn.functional as F
 
 from src.evaluate import classify_transaction, assign_severity
 from src.logger import log_info, log_error, log_warning
@@ -36,6 +35,98 @@ DIA_MAP = {
     "jueves": 3, "viernes": 4, "sábado": 5, "sabado": 5, "domingo": 6
 }
 
+# ── Explicación basada en el modelo: qué variable confundió más al VAE ──────
+# Solo se consideran campos que la persona realmente ingresa (monto, hora,
+# descuento, cajero, mesa, método de pago, tipo de transacción). Se excluyen
+# a propósito turno/mesero/categoria_producto/producto/cantidad_items: para
+# la mayoría de transacciones (las que sube Rosita, o las de "Verificar
+# Venta") esos campos casi nunca se ingresan y quedan con un valor por
+# defecto — reportarlos como "la razón" sería atribuir la anomalía a un dato
+# que la persona nunca dio.
+GRUPOS_EXPLICABLES = [
+    "monto_final", "descuento_pct",
+    "dia_semana", "hora", "cajero", "mesa_canal",
+    "metodo_pago", "tipo_transaccion",
+]
+GRUPO_LABEL_TECNICO = {
+    "monto_final": "Monto de la transacción",
+    "descuento_pct": "Descuento aplicado",
+    "dia_semana": "Día de la semana",
+    "hora": "Hora del día",
+    "cajero": "Cajero",
+    "mesa_canal": "Mesa / canal de venta",
+    "metodo_pago": "Método de pago",
+    "tipo_transaccion": "Tipo de transacción",
+}
+GRUPO_LABEL_NEGOCIO = {
+    "monto_final": "el monto de la venta",
+    "descuento_pct": "el descuento aplicado",
+    "dia_semana": "el día en que se hizo",
+    "hora": "la hora en que se hizo",
+    "cajero": "quién la cobró",
+    "mesa_canal": "la mesa o canal de venta",
+    "metodo_pago": "el método de pago",
+    "tipo_transaccion": "el tipo de transacción",
+}
+
+
+def _feature_group_for_column(col_name: str):
+    """Traduce una columna de salida del preprocesador (ej.
+    'categoricas__cajero_CAJ-001') a su variable original ('cajero').
+    Devuelve None para columnas que no se usan en la explicación.
+    'monto_bruto' se fusiona con 'monto_final': son el mismo concepto de
+    negocio (monto de la venta) y reportarlos aparte duplicaba la frase."""
+    resto = col_name.split("__", 1)[1] if "__" in col_name else col_name
+    if resto in ("dia_sin", "dia_cos"):
+        return "dia_semana"
+    if resto in ("hora_sin", "hora_cos"):
+        return "hora"
+    if resto == "monto_bruto":
+        return "monto_final"
+    if resto in GRUPOS_EXPLICABLES:
+        return resto
+    for campo in sorted(GRUPOS_EXPLICABLES, key=len, reverse=True):
+        if resto == campo or resto.startswith(campo + "_"):
+            return campo
+    return None
+
+
+def _build_group_index(preprocessor):
+    """Lista de grupos (o None) alineada 1 a 1 con las columnas de salida
+    del preprocesador, para poder sumar el error de reconstrucción por
+    variable original en vez de por columna codificada."""
+    return [_feature_group_for_column(c) for c in preprocessor.get_feature_names_out()]
+
+
+def _explicar_por_error(sq_err_row, group_index, estilo="tecnico", top_n=2):
+    """
+    A partir del error cuadrático por columna de UNA transacción, agrupa por
+    variable original y arma una frase con la(s) variable(s) que más
+    contribuyeron al error de reconstrucción del VAE. Devuelve None si el
+    error está muy repartido entre muchas variables (sin un "culpable" claro).
+    """
+    aportes = {}
+    for valor, grupo in zip(sq_err_row, group_index):
+        if grupo is None:
+            continue
+        aportes[grupo] = aportes.get(grupo, 0.0) + float(valor)
+
+    total = sum(aportes.values())
+    if total <= 0:
+        return None
+
+    ranking = sorted(aportes.items(), key=lambda kv: kv[1], reverse=True)
+    etiquetas = GRUPO_LABEL_TECNICO if estilo == "tecnico" else GRUPO_LABEL_NEGOCIO
+    # Solo se reporta una variable si de verdad concentra una parte
+    # significativa del error (>15%); si no, es más honesto decir que no
+    # hay una causa puntual clara que inventar una.
+    principales = [etiquetas[g] for g, v in ranking[:top_n] if v / total > 0.15]
+    if not principales:
+        return None
+    if estilo == "tecnico":
+        return " · ".join(principales)
+    return "Lo más inusual fue " + " y ".join(principales)
+
 
 def load_artifacts():
     """Carga thread-safe de los artefactos del modelo (preprocesador, VAE, umbrales)."""
@@ -61,6 +152,28 @@ def load_artifacts():
                 _thresholds = json.load(f)
 
     return _preprocessor, _vae_model, _thresholds
+
+
+def _normalize_mesa_canal(raw):
+    """
+    Traduce el formato de mesa/canal que sube Rosita ('Mesa 1', 'Domicilio',
+    'Retiro') al formato exacto con el que se entrenó el modelo ('mesa_01',
+    'domicilio', 'retiro_local'). Sin esto, NINGUNA mesa se reconocía —
+    'Mesa 1' y 'mesa_01' son categorías distintas para el codificador.
+    """
+    if raw is None:
+        return "mesa_01"
+    texto = str(raw).strip().lower()
+    if "domicilio" in texto:
+        return "domicilio"
+    if "retiro" in texto:
+        return "retiro_local"
+    if "delivery" in texto or "app" in texto:
+        return "app_delivery"
+    digitos = "".join(c for c in texto if c.isdigit())
+    if "mesa" in texto and digitos:
+        return f"mesa_{int(digitos):02d}"
+    return texto
 
 
 def _prepare_transaction_row(tx_dict: dict) -> pd.DataFrame:
@@ -121,7 +234,7 @@ def _prepare_transaction_row(tx_dict: dict) -> pd.DataFrame:
         "turno": str(tx_dict.get("turno", "almuerzo")),
         "cajero": str(tx_dict.get("cajero", "CAJ-003")),
         "mesero": str(tx_dict.get("mesero", "MES-004")),
-        "mesa_canal": str(tx_dict.get("mesa_canal", tx_dict.get("mesa", "Mesa_1"))),
+        "mesa_canal": _normalize_mesa_canal(tx_dict.get("mesa_canal", tx_dict.get("mesa"))),
         "categoria_producto": str(tx_dict.get("categoria_producto", "almuerzos")),
         "producto": str(tx_dict.get("producto", "Almuerzo ejecutivo")),
         # metodo_pago / tipo_transaccion sí los manda Rosita, pero en
@@ -150,7 +263,8 @@ def evaluate_raw_transaction(tx_dict: dict):
 
         with torch.no_grad():
             reconstruction = vae_model.reconstruct_deterministic(X_tensor)
-            rec_error = float(F.mse_loss(reconstruction, X_tensor, reduction="none").mean(dim=1).numpy()[0])
+            sq_err = (X_tensor - reconstruction) ** 2
+            rec_error = float(sq_err.mean(dim=1).numpy()[0])
 
         monto = float(tx_dict.get("monto", tx_dict.get("monto_final", 0.0)))
         resultado = classify_transaction(
@@ -158,6 +272,15 @@ def evaluate_raw_transaction(tx_dict: dict):
             thresholds=thresholds,
             monto=monto,
         )
+
+        if resultado["es_anomalia"]:
+            group_index = _build_group_index(preprocessor)
+            sq_err_row = sq_err.numpy()[0]
+            resultado["motivo_tecnico"] = _explicar_por_error(sq_err_row, group_index, "tecnico")
+            resultado["motivo_negocio"] = _explicar_por_error(sq_err_row, group_index, "negocio")
+        else:
+            resultado["motivo_tecnico"] = None
+            resultado["motivo_negocio"] = None
 
         performance = metrics.stop(1)
 
@@ -190,6 +313,10 @@ def process_raw_batch(df: pd.DataFrame):
                 lambda e: assign_severity(e, thresholds)
             )
             processed_df["prediccion_anomalia"] = (processed_df["severidad"] != "normal").astype(int)
+            # No hay descomposición de error por variable disponible aquí
+            # (el error ya venía calculado, no se recalcula con el modelo).
+            processed_df["motivo_tecnico"] = None
+            processed_df["motivo_negocio"] = None
         else:
             # Requerimos preprocesamiento completo
             rows = []
@@ -202,11 +329,22 @@ def process_raw_batch(df: pd.DataFrame):
             
             with torch.no_grad():
                 reconstruction = vae_model.reconstruct_deterministic(X_tensor)
-                rec_errors = F.mse_loss(reconstruction, X_tensor, reduction="none").mean(dim=1).numpy()
+                sq_err_matrix = ((X_tensor - reconstruction) ** 2).numpy()
+                rec_errors = sq_err_matrix.mean(axis=1)
             
             processed_df["reconstruction_error"] = rec_errors
             processed_df["severidad"] = [assign_severity(e, thresholds) for e in rec_errors]
             processed_df["prediccion_anomalia"] = (processed_df["severidad"] != "normal").astype(int)
+
+            group_index = _build_group_index(preprocessor)
+            processed_df["motivo_tecnico"] = [
+                _explicar_por_error(fila, group_index, "tecnico") if sev != "normal" else None
+                for fila, sev in zip(sq_err_matrix, processed_df["severidad"])
+            ]
+            processed_df["motivo_negocio"] = [
+                _explicar_por_error(fila, group_index, "negocio") if sev != "normal" else None
+                for fila, sev in zip(sq_err_matrix, processed_df["severidad"])
+            ]
 
         # Ordenar por mayor error si la columna existe
         processed_df = processed_df.sort_values(by="reconstruction_error", ascending=False).reset_index(drop=True)
