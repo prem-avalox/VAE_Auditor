@@ -1,6 +1,7 @@
-# VAE Auditor - Auditor de Ventas para Restaurante
+# ZeroAnomalías — Auditor de Ventas para Restaurante
 
-Proyecto academico de Inteligencia Artificial y Aprendizaje Automatico.
+Proyecto academico de Inteligencia Artificial y Aprendizaje Automatico
+(nombre interno de repositorio: `VAE_Auditor`).
 
 ## Objetivo
 
@@ -170,19 +171,28 @@ estan pensadas para produccion (ver seccion de riesgos mas abajo).
   evaluacion incluido, con filtros por split/severidad/monto y descarga de
   resultados filtrados en Excel (coloreado por severidad, con filtros
   automaticos y encabezado congelado).
+- Columna "Motivo": explica por que una transaccion se marco como anomala.
+  Usa la categoria real del dataset de evaluacion cuando existe
+  (`tipo_anomalia`), o la descomposicion del error de reconstruccion por
+  variable cuando no (ver "Explicacion de anomalias" mas abajo).
 - Verificar Venta: evalua una transaccion individual en tiempo real contra
-  el modelo VAE cargado en memoria.
-- Logs y Rendimiento del Sistema: logs de auditoria en vivo y estado del
-  backend.
+  el modelo VAE cargado en memoria, con los mismos "Factores que
+  contribuyen a la anomalia" basados en el modelo real.
+- Logs y Rendimiento del Sistema: logs de auditoria en vivo, con un resumen
+  de rendimiento (throughput/latencia promedio) calculado en vivo a partir
+  de los eventos `REAL_*` del log.
 
 **Perfil Negocio (Rosita):**
 
 - Carga un Excel de ventas con las columnas `id_transaccion`, `fecha_hora`,
   `cajero`, `mesa`, `monto`, `descuento_pct`, `metodo_pago`,
-  `tipo_transaccion`.
+  `tipo_transaccion`. `id_transaccion` debe ser unico por fila: se usa para
+  unir los resultados del modelo de vuelta con cada transaccion.
 - El sistema corre cada transaccion por el modelo VAE real (via
   `src/audit_service.py`, no una simulacion) y devuelve un resumen
   ejecutivo con el monto en posible riesgo.
+- Columna "motivo": explica en lenguaje simple (sin jerga tecnica) por que
+  se marco cada alerta, ej. "Lo mas inusual fue el monto de la venta".
 - Descarga de reporte en Excel con 3 hojas (Reporte Completo, Solo Alertas,
   Resumen Ejecutivo), coloreado por severidad y con filtros automaticos.
 
@@ -252,12 +262,60 @@ Modulos de soporte:
   frontend (Parte 5) como para la API (Parte 6), para no duplicar logica de
   inferencia entre los dos.
 
+## Explicacion de anomalias ("Motivo")
+
+Cada transaccion marcada como anomala trae una explicacion de por que,
+calculada en `src/audit_service.py` y `app.py`, en este orden de prioridad:
+
+1. **Descomposicion del error por variable** (la mas precisa): el VAE no
+   solo calcula un error de reconstruccion promedio, tambien se mide el
+   error por cada variable de entrada (monto, hora, dia, cajero, mesa,
+   metodo de pago, tipo de transaccion). La(s) variable(s) que concentran
+   mas del 15% del error se reportan como el motivo — esto detecta
+   combinaciones reales (ej. "Hora del dia · Mesa / canal de venta"), no
+   solo un factor aislado. Se excluyen a proposito `turno`, `mesero`,
+   `categoria_producto`, `producto` y `cantidad_items`: casi nunca vienen
+   en los archivos que sube Rosita y quedarian con un valor por defecto, asi
+   que reportarlos como "la razon" seria atribuir la anomalia a un dato que
+   la persona nunca dio.
+2. **Categoria real** (`tipo_anomalia`): solo disponible en el dataset de
+   evaluacion incluido (`reports/evaluacion_transacciones.csv`), donde se
+   conoce la causa exacta con la que se genero cada anomalia sintetica.
+3. **Reglas heuristicas** (respaldo): si ninguna variable concentra
+   suficiente error, se revisan reglas simples sobre monto/descuento/hora.
+
+El texto cambia segun el rol: tecnico ("Descuento aplicado") vs. negocio
+("el descuento aplicado").
+
+## Normalizacion de datos de entrada
+
+El modelo se entreno con categorias en un formato especifico
+(`efectivo`, `mesa_01`, `CAJ-001`, etc.). Los archivos que sube Rosita usan
+un formato mas natural (`Efectivo`, `Mesa 1`, nombres de cajero). Sin
+normalizar esto, el codificador trata cada valor no reconocido como
+"desconocido", lo que infla artificialmente el error de reconstruccion de
+*todas* las transacciones por igual. `src/audit_service.py` normaliza:
+
+- `metodo_pago` y `tipo_transaccion`: a minuscula.
+- `mesa_canal` (columna `mesa` del Excel de Rosita): de `"Mesa 1"` /
+  `"Domicilio"` / `"Retiro"` al formato de entrenamiento (`mesa_01`,
+  `domicilio`, `retiro_local`).
+- `dia_semana` y `hora`: si no vienen explicitos, se derivan de
+  `fecha_hora` (antes, toda transaccion sin esos dos campos caia en el
+  valor por defecto "lunes 12:00", sin importar su fecha real).
+
+**Limitacion conocida, sin resolver:** los nombres de cajero que sube
+Rosita (`"Carlos"`, `"Juan"`, `"Maria"`) no tienen forma de mapearse a los
+codigos de entrenamiento (`CAJ-001`...`CAJ-004`) sin que el equipo defina
+esa correspondencia; queda como ruido de fondo menor en el error de
+reconstruccion.
+
 ## Riesgos y limitaciones conocidas
 
 Para tener presente al presentar el proyecto, en la seccion de riesgos y
 sostenibilidad:
 
-- Autenticacion con credenciales fijas en el codigo (`USERS` en `app.py`):
+- Autenticacion con credenciales fijas en el codigo (`USERS` en `app.py`)
 - Sin multi-tenancy: los datos de distintos restaurantes no estan aislados
   entre si.
 - Persistencia en archivos (CSV/JSON), sin base de datos.
@@ -265,4 +323,7 @@ sostenibilidad:
 - Los umbrales de severidad se calibraron una sola vez con el dataset
   sintetico; en un despliegue real conviene recalibrar por cliente y de
   forma periodica.
-  
+- `app.py` esta limpio de warnings de Pylint relevantes (10.00/10); los
+  avisos puramente de estilo que quedan (uso de `dict()` en vez de `{}` en
+  las figuras de Plotly, nombres de variables de un script secuencial, etc.)
+  estan documentados y silenciados a proposito, no ignorados sin mas.
