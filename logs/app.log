@@ -465,3 +465,46 @@
 [2026-07-25 13:38:17] [INFO] [REAL_BATCH_PROCESSED] transacciones=499, tiempo_total=0.357648s, latencia=0.000717s, throughput=1395.23 trans/s
 [2026-07-25 14:53:53] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
 [2026-07-25 14:54:00] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.004406s, latencia=0.000001s, throughput=1125411.41 trans/s
+[2026-07-25 17:45:24] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-25 17:45:27] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009042s, latencia=0.000002s, throughput=548317.88 trans/s
+[2026-07-25 17:47:50] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.083848, latencia=0.031848s
+[2026-07-25 17:48:11] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009989s, latencia=0.000002s, throughput=496326.10 trans/s
+[2026-07-25 17:48:26] [INFO] [LOGIN_OK] usuario=rosita, rol=Negocio
+[2026-07-25 17:48:35] [INFO] [REAL_BATCH_PROCESSED] transacciones=499, tiempo_total=1.108412s, latencia=0.002221s, throughput=450.19 trans/s
+[2026-07-25 17:57:57] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-25 17:58:16] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.033836s, latencia=0.000007s, throughput=146529.46 trans/s
+[2026-07-25 17:58:25] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.083848, latencia=0.663962s
+[2026-07-25 18:04:15] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-25 18:04:31] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.006678s, latencia=0.000001s, throughput=742404.51 trans/s
+[2026-07-25 18:05:17] [INFO] [LOGIN_OK] usuario=rosita, rol=Negocio
+[2026-07-25 18:05:24] [INFO] [REAL_BATCH_PROCESSED] transacciones=499, tiempo_total=1.102676s, latencia=0.002210s, throughput=452.54 trans/s
+[2026-07-25 18:05:58] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-25 18:08:19] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.010526s, latencia=0.000002s, throughput=471024.13 trans/s
+[2026-07-25 18:10:26] [INFO] [LOGIN_OK] usuario=rosita, rol=Negocio
+[2026-07-25 18:10:34] [INFO] [REAL_BATCH_PROCESSED] transacciones=499, tiempo_total=1.123255s, latencia=0.002251s, throughput=444.24 trans/s
+[2026-07-25 18:20:41] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-25 18:20:43] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.006539s, latencia=0.000001s, throughput=758231.50 trans/s
+[2026-07-25 18:21:21] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.083848, latencia=0.019719s
+[2026-07-25 18:28:48] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-25 18:28:52] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.007026s, latencia=0.000001s, throughput=705694.81 trans/s
+[2026-07-25 18:29:02] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.263066s, latencia=0.000053s, throughput=18846.97 trans/s
+[2026-07-25 18:29:52] [INFO] [LOGIN_OK] usuario=rosita, rol=Negocio
+[2026-07-25 18:30:00] [INFO] [REAL_BATCH_PROCESSED] transacciones=499, tiempo_total=1.023276s, latencia=0.002051s, throughput=487.65 trans/s
+[2026-07-25 18:32:24] [INFO] [REAL_BATCH_PROCESSED] transacciones=946, tiempo_total=1.979105s, latencia=0.002092s, throughput=477.99 trans/s
+[2026-07-25 18:48:43] [WARNING] [LOGIN_FAIL] usuario=tecnico
+[2026-07-25 18:48:48] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-25 18:48:54] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.006080s, latencia=0.000001s, throughput=815500.77 trans/s
+[2026-07-25 18:49:16] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.083848, latencia=0.031048s
+[2026-07-25 18:49:31] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=baja, rec_error=0.082132, latencia=0.030195s
+[2026-07-25 18:49:34] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.085641, latencia=0.025932s
+[2026-07-25 18:50:18] [INFO] [LOGIN_OK] usuario=rosita, rol=Negocio
+[2026-07-25 18:50:25] [INFO] [REAL_BATCH_PROCESSED] transacciones=946, tiempo_total=2.066379s, latencia=0.002184s, throughput=457.81 trans/s
+[2026-07-25 18:51:22] [INFO] [LOGIN_OK] usuario=rosita, rol=Negocio
+[2026-07-25 18:51:30] [INFO] [REAL_BATCH_PROCESSED] transacciones=946, tiempo_total=2.314718s, latencia=0.002447s, throughput=408.69 trans/s
+[2026-07-25 18:52:14] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-25 18:52:17] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.009306s, latencia=0.000002s, throughput=532791.73 trans/s
+[2026-07-25 18:52:28] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=media, rec_error=0.083848, latencia=0.027063s
+[2026-07-25 18:56:04] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-25 18:56:09] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.013190s, latencia=0.000003s, throughput=375899.38 trans/s
+[2026-07-25 18:56:31] [INFO] [LOGIN_OK] usuario=rosita, rol=Negocio
+[2026-07-25 18:56:41] [INFO] [REAL_BATCH_PROCESSED] transacciones=946, tiempo_total=1.799351s, latencia=0.001902s, throughput=525.75 trans/s

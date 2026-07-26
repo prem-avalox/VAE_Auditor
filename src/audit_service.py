@@ -72,15 +72,35 @@ def _prepare_transaction_row(tx_dict: dict) -> pd.DataFrame:
     monto_bruto = float(tx_dict.get("monto_bruto", monto + descuento))
     descuento_pct = (descuento / max(monto_bruto, 0.01)) * 100.0 if "descuento" in tx_dict and "descuento_pct" not in tx_dict else float(tx_dict.get("descuento_pct", 0.0))
     
-    # Día de la semana
-    dia_input = tx_dict.get("dia_semana", 0)
+    # Día de la semana y hora: si no vienen explícitos pero sí viene
+    # fecha_hora (el caso normal cuando se sube un Excel/CSV con esa sola
+    # columna), se derivan de ahí. Antes, sin este fallback, TODA
+    # transacción sin dia_semana/hora explícitos caía en el valor por
+    # defecto (lunes, 12:00) sin importar su fecha real — lo que distorsionaba
+    # el error de reconstrucción de lotes completos.
+    fecha_hora_val = tx_dict.get("fecha_hora")
+    dia_input = tx_dict.get("dia_semana")
+    hora_raw = tx_dict.get("hora", tx_dict.get("hora_decimal"))
+
+    if (dia_input is None or hora_raw is None) and fecha_hora_val is not None:
+        try:
+            ts = pd.to_datetime(fecha_hora_val)
+            if dia_input is None:
+                dia_input = int(ts.weekday())
+            if hora_raw is None:
+                hora_raw = ts.hour + ts.minute / 60.0
+        except (ValueError, TypeError):
+            pass
+
+    if dia_input is None:
+        dia_input = 0
     if isinstance(dia_input, str):
         dia_idx = DIA_MAP.get(dia_input.strip().lower(), 0)
     else:
         dia_idx = int(dia_input) % 7
 
     # Hora decimal
-    hora_val = float(tx_dict.get("hora", tx_dict.get("hora_decimal", 12.0)))
+    hora_val = float(hora_raw) if hora_raw is not None else 12.0
 
     row = {
         "cantidad_items": float(tx_dict.get("cantidad_items", tx_dict.get("num_items", 3))),
@@ -91,14 +111,25 @@ def _prepare_transaction_row(tx_dict: dict) -> pd.DataFrame:
         "dia_cos": np.cos(2 * np.pi * dia_idx / 7.0),
         "hora_sin": np.sin(2 * np.pi * hora_val / 24.0),
         "hora_cos": np.cos(2 * np.pi * hora_val / 24.0),
-        "turno": str(tx_dict.get("turno", "Almuerzo")),
-        "cajero": str(tx_dict.get("cajero", "Cajero_1")),
-        "mesero": str(tx_dict.get("mesero", "Mesero_1")),
+        # Nota: turno/mesero/categoria_producto/producto casi nunca vienen en
+        # los archivos que sube Rosita (su formato solo pide fecha_hora,
+        # cajero, mesa, monto, descuento_pct, metodo_pago, tipo_transaccion).
+        # Los valores por defecto de abajo son los MÁS FRECUENTES en los
+        # datos de entrenamiento (no valores inventados), para minimizar el
+        # error de reconstrucción artificial que meten categorías que el
+        # modelo nunca vio.
+        "turno": str(tx_dict.get("turno", "almuerzo")),
+        "cajero": str(tx_dict.get("cajero", "CAJ-003")),
+        "mesero": str(tx_dict.get("mesero", "MES-004")),
         "mesa_canal": str(tx_dict.get("mesa_canal", tx_dict.get("mesa", "Mesa_1"))),
-        "categoria_producto": str(tx_dict.get("categoria_producto", "Platos Principales")),
-        "producto": str(tx_dict.get("producto", "Plato Ejecutivo")),
-        "metodo_pago": str(tx_dict.get("metodo_pago", "Efectivo")),
-        "tipo_transaccion": str(tx_dict.get("tipo_transaccion", "Venta")),
+        "categoria_producto": str(tx_dict.get("categoria_producto", "almuerzos")),
+        "producto": str(tx_dict.get("producto", "Almuerzo ejecutivo")),
+        # metodo_pago / tipo_transaccion sí los manda Rosita, pero en
+        # Mayúscula ("Efectivo", "Venta"); el modelo se entrenó con minúscula
+        # ("efectivo", "venta") — sin este .lower() cada transacción cae en
+        # una categoría "desconocida" para el codificador.
+        "metodo_pago": str(tx_dict.get("metodo_pago", "efectivo")).lower(),
+        "tipo_transaccion": str(tx_dict.get("tipo_transaccion", "venta")).lower(),
     }
     return pd.DataFrame([row])
 
@@ -219,4 +250,4 @@ def evaluate_transaction(reconstruction_error, thresholds, monto=None):
 
 def process_batch(df: pd.DataFrame):
     """Función de legado para procesar lotes ya evaluados."""
-    return process_raw_batch(df)
+    return process_raw_batch(df)

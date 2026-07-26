@@ -28,6 +28,7 @@ Streamlit app con sistema de login y dos perfiles: Técnico y Negocio.
 # arriesgar nada que ya funciona y está probado.
 import json
 import io
+import re
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -59,6 +60,107 @@ SEVERITY_COLORS = {
 SEVERITY_ORDER = ["normal", "baja", "media", "alta"]
 SEV_LABELS     = {"normal": "Normal", "baja": "Baja", "media": "Media", "alta": "Alta"}
 
+# ── Traducción de tipos de anomalía reales (dataset de evaluación) a texto ──
+TIPO_ANOMALIA_TECNICO = {
+    "monto_extremo": "Monto fuera del rango estadístico normal",
+    "devolucion_monto_alto": "Devolución de un monto inusualmente alto",
+    "descuento_excesivo": "Descuento fuera del rango permitido (>30%)",
+    "hora_inusual": "Transacción fuera del horario de operación normal",
+    "anulacion_sospechosa": "Anulación con patrón atípico",
+}
+TIPO_ANOMALIA_NEGOCIO = {
+    "monto_extremo": "Monto mucho más alto o más bajo de lo normal",
+    "devolucion_monto_alto": "Devolución grande — vale la pena revisarla con el cajero",
+    "descuento_excesivo": "Descuento más grande de lo que se suele permitir",
+    "hora_inusual": "Venta hecha en un horario poco común",
+    "anulacion_sospechosa": "Anulación con un patrón que no es el habitual",
+}
+
+
+def explicar_anomalia(row, estilo="tecnico"):  # pylint: disable=too-many-branches
+    # too-many-branches: cada rama es una regla de negocio independiente
+    # (tipo de monto, descuento, horario); dividirlas en sub-funciones no
+    # las simplifica, solo las esparce. Los nombres locales (severidad,
+    # monto, hora, factores) coinciden con variables de página usadas más
+    # abajo en "Verificar Venta" — no hay ambigüedad real, se marca inline
+    # donde corresponde.
+    """
+    Genera una explicación corta y legible de por qué una transacción se
+    marcó como anómala, usando los campos que estén disponibles en `row`
+    (funciona tanto con el dataset de evaluación del Técnico —que trae la
+    categoría real `tipo_anomalia`— como con archivos nuevos sin esa
+    etiqueta, como los que sube Rosita, infiriendo la razón con reglas).
+
+    `estilo`: "tecnico" (más cuantitativo) o "negocio" (lenguaje simple).
+    Devuelve "" si la transacción es normal.
+    """
+    severidad = str(row.get("severidad", row.get("estado", ""))).lower()  # pylint: disable=redefined-outer-name
+    if severidad in ("", "normal", "nan"):
+        return ""
+
+    # 1) Si existe la categoría real (solo en el dataset de evaluación), es
+    #    la explicación más precisa posible: el motivo con el que esa
+    #    transacción fue generada.
+    tipo_real = row.get("tipo_anomalia")
+    if isinstance(tipo_real, str) and tipo_real.lower() not in ("", "normal", "nan"):
+        etiquetas = TIPO_ANOMALIA_TECNICO if estilo == "tecnico" else TIPO_ANOMALIA_NEGOCIO
+        return etiquetas.get(tipo_real.lower(), tipo_real.replace("_", " ").capitalize())
+
+    # 2) Sin etiqueta real (datos nuevos): inferir con reglas sobre los
+    #    campos crudos disponibles.
+    monto = row.get("monto", row.get("monto_final"))  # pylint: disable=redefined-outer-name
+    descuento_monto = row.get("descuento")
+    descuento_pct = row.get("descuento_pct")
+    if descuento_monto is None and descuento_pct is not None and monto is not None:
+        try:
+            descuento_monto = float(monto) * float(descuento_pct)
+        except (TypeError, ValueError):
+            descuento_monto = None
+
+    hora = row.get("hora")  # pylint: disable=redefined-outer-name
+    if hora is None and row.get("fecha_hora") is not None:
+        try:
+            hora = pd.to_datetime(row["fecha_hora"]).hour
+        except (ValueError, TypeError):
+            hora = None
+
+    factores = []  # pylint: disable=redefined-outer-name
+    try:
+        monto_f = float(monto) if monto is not None else None
+    except (TypeError, ValueError):
+        monto_f = None
+
+    if monto_f is not None and monto_f > 200:
+        factores.append(
+            f"Monto ${monto_f:,.2f} supera el umbral típico de $200" if estilo == "tecnico"
+            else "Monto mucho más alto de lo habitual"
+        )
+    elif monto_f is not None and monto_f < 1.0:
+        factores.append(
+            f"Monto ${monto_f:,.2f} atípicamente bajo" if estilo == "tecnico"
+            else "Monto inusualmente bajo"
+        )
+    if descuento_monto is not None and monto_f:
+        ratio = float(descuento_monto) / max(monto_f, 1)
+        if ratio > 0.3:
+            factores.append(
+                f"Descuento del {ratio*100:.0f}% supera el 30% permitido" if estilo == "tecnico"
+                else "Descuento fuera de lo normal"
+            )
+    if hora is not None and (hora < 6 or hora > 22):
+        factores.append(
+            f"Hora inusual ({int(hora):02d}:00)" if estilo == "tecnico"
+            else "Venta en un horario poco común"
+        )
+
+    if factores:
+        return " · ".join(factores[:2])
+    return (
+        "Patrón general inusual detectado por el modelo VAE" if estilo == "tecnico"
+        else "Patrón inusual detectado, sin una causa puntual clara"
+    )
+
+
 # ── Paleta para los reportes Excel descargables (mismos tonos que el dashboard) ──
 EXCEL_FILL_HEX = {
     "normal": "DCFCE7",  # verde pastel
@@ -72,6 +174,37 @@ EXCEL_FONT_HEX = {
     "media":  "9A3412",
     "alta":   "991B1B",
 }
+
+
+LOG_LINE_RE = re.compile(
+    r"^\[(?P<ts>[^\]]+)\]\s*\[(?P<level>[A-Z]+)\]\s*\[(?P<event>[A-Za-z_]+)\]\s*(?P<details>.*)$"
+)
+LOG_NUM_FIELD_RE = re.compile(r"(?P<key>\w+)=(?P<value>[\d.]+)")
+
+
+def parse_log_lines(lines):
+    """
+    Convierte líneas crudas de logs/app.log (formato
+    "[fecha] [NIVEL] [EVENTO] campo=valor, campo=valor") en un DataFrame
+    con columnas: timestamp, level, event, latencia_ms, throughput.
+    Líneas que no calzan con el formato esperado se ignoran.
+    """
+    rows = []
+    for line in lines:
+        match = LOG_LINE_RE.match(line)
+        if not match:
+            continue
+        details = match.group("details")
+        fields = {k: float(v) for k, v in LOG_NUM_FIELD_RE.findall(details)}
+        rows.append({
+            "timestamp": match.group("ts"),
+            "level": match.group("level"),
+            "event": match.group("event"),
+            "latencia_ms": fields.get("latencia", None) * 1000
+                           if "latencia" in fields else None,
+            "throughput": fields.get("throughput", None),
+        })
+    return pd.DataFrame(rows, columns=["timestamp", "level", "event", "latencia_ms", "throughput"])
 
 
 def build_styled_excel_bytes(sheets):  # pylint: disable=too-many-locals,too-many-statements
@@ -598,10 +731,10 @@ if st.session_state.rol == "Técnico":
             df_base = df_base[df_base["prediccion_anomalia"] == 1]
         if busqueda_query.strip():
             q = busqueda_query.strip().lower()
-            df_base = df_base[
-                df_base["id_transaccion"].astype(str).str.lower().str.contains(q) |
-                df_base["tipo_anomalia"].astype(str).str.lower().str.contains(q)
-            ]
+            mask_busqueda = df_base["id_transaccion"].astype(str).str.lower().str.contains(q)
+            if "tipo_anomalia" in df_base.columns:
+                mask_busqueda |= df_base["tipo_anomalia"].astype(str).str.lower().str.contains(q)
+            df_base = df_base[mask_busqueda]
 
         total_transacciones_base = len(df_base)
 
@@ -729,7 +862,13 @@ if st.session_state.rol == "Técnico":
         display_cols = ["id_transaccion","split","monto_final","tipo_anomalia",
                         "reconstruction_error","severidad","prediccion_anomalia"]
         available_cols = [c for c in display_cols if c in df_filtered.columns]
+
+        # Motivo legible calculado ANTES de renombrar/formatear columnas,
+        # para tener acceso a los nombres originales (monto_final, tipo_anomalia, ...)
+        motivo_series = df_filtered.apply(lambda r: explicar_anomalia(r, estilo="tecnico"), axis=1)
+
         df_display = df_filtered[available_cols].copy()
+        df_display["motivo"] = motivo_series.values
         if "monto_final" in df_display.columns:
             df_display["monto_final"] = df_display["monto_final"].apply(lambda x: f"${x:,.2f}")
         if "reconstruction_error" in df_display.columns:
@@ -739,7 +878,7 @@ if st.session_state.rol == "Técnico":
         df_display = df_display.rename(columns={
             "id_transaccion":"ID","split":"Split","monto_final":"Monto",
             "tipo_anomalia":"Tipo","reconstruction_error":"Error Reconstrucción",
-            "severidad":"Severidad","prediccion_anomalia":"Predicción"})
+            "severidad":"Severidad","prediccion_anomalia":"Predicción","motivo":"Motivo"})
 
         if isinstance(filas_opc, int):
             df_show_table = df_display.head(filas_opc)
@@ -752,6 +891,7 @@ if st.session_state.rol == "Técnico":
 
         # ── Descarga en Excel, ordenada, coloreada por severidad y con filtros ──
         df_export = df_filtered[available_cols].copy()
+        df_export["motivo"] = motivo_series.values
         if "prediccion_anomalia" in df_export.columns:
             df_export["prediccion_anomalia"] = df_export["prediccion_anomalia"].map(
                 {0: "Normal", 1: "Anomalía"})
@@ -761,7 +901,7 @@ if st.session_state.rol == "Técnico":
         df_export = df_export.rename(columns={
             "id_transaccion": "ID", "split": "Split", "monto_final": "Monto ($)",
             "tipo_anomalia": "Tipo", "reconstruction_error": "Error Reconstrucción",
-            "severidad": "Severidad", "prediccion_anomalia": "Predicción",
+            "severidad": "Severidad", "prediccion_anomalia": "Predicción", "motivo": "Motivo",
         })
         if "Severidad" in df_export.columns:
             df_export["Severidad"] = df_export["Severidad"].str.capitalize()
@@ -963,27 +1103,65 @@ if st.session_state.rol == "Técnico":
                 logs_lines = [line.strip() for line in log_f.readlines() if line.strip()]
 
             num_logs = st.slider("Número de líneas a mostrar", 10, 200, 50)
-            logs_to_show = "\n".join(logs_lines[-num_logs:])
+            visible_lines = logs_lines[-num_logs:]
+            logs_to_show = "\n".join(visible_lines)
             st.text_area("Eventos del sistema (logs/app.log):", value=logs_to_show, height=320)
             st.caption(f"Mostrando las últimas {min(num_logs, len(logs_lines))} de {len(logs_lines)} entradas de log.")
+
+            # ── Resumen calculado en vivo de las líneas visibles ────────────────
+            # Solo se agregan eventos "REAL_*": los que sí pasan por el modelo VAE
+            # real (src/audit_service.py). El log también conserva entradas
+            # antiguas de antes de conectar el backend real, con cifras que ya
+            # no son representativas — se excluyen de las estadísticas.
+            df_logs = parse_log_lines(visible_lines)
+            df_real = df_logs[df_logs["event"].str.startswith("REAL_")]
+            df_perf = df_real.dropna(subset=["throughput"])
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown("### 📊 Resumen de Rendimiento (calculado de los logs reales)")
+            st.caption(
+                "Solo incluye eventos `REAL_*`, generados por el modelo VAE real "
+                "en producción (excluye entradas de logs previas a la integración "
+                "del backend)."
+            )
+
+            lk1, lk2, lk3, lk4 = st.columns(4)
+            lk1.metric("Eventos analizados", f"{len(df_logs):,}")
+            lk2.metric("Eventos reales (VAE)", f"{len(df_real):,}")
+            lk3.metric(
+                "Throughput promedio",
+                f"{df_perf['throughput'].mean():,.0f} trans/s" if len(df_perf) else "—",
+            )
+            lk4.metric(
+                "Latencia promedio",
+                f"{df_real['latencia_ms'].dropna().mean():.3f} ms"
+                if df_real["latencia_ms"].notna().any() else "—",
+            )
+
+            if len(df_perf) >= 2:
+                fig_perf = go.Figure()
+                fig_perf.add_trace(go.Scatter(
+                    y=df_perf["throughput"], mode="lines+markers",
+                    line=dict(color=SEVERITY_COLORS["normal"], width=2),
+                    marker=dict(size=5),
+                    name="Throughput (trans/s)",
+                ))
+                perf_layout = {**PLOTLY_LAYOUT, "margin": dict(l=10, r=10, t=10, b=10)}
+                fig_perf.update_layout(
+                    **perf_layout,
+                    height=280,
+                    xaxis_title="Evento (orden cronológico)",
+                    yaxis_title="Throughput (trans/s)",
+                )
+                st.plotly_chart(fig_perf, use_container_width=True)
+            else:
+                st.caption(
+                    "Aún no hay suficientes eventos con throughput en la ventana "
+                    "visible para graficar una tendencia. Sube el número de líneas "
+                    "a mostrar o genera más tráfico (Auditoría por Lotes / Verificar Venta)."
+                )
         else:
             st.info("El archivo `logs/app.log` aún no contiene entradas.")
-
-        st.markdown("---")
-        st.markdown("### ⚡ Endpoints REST API (FastAPI Backend)")
-        st.markdown("""
-        El backend está preparado para ejecutarse con **Uvicorn** para atender peticiones concurrentes de 3 o más usuarios simultáneamente:
-        - `GET /health` — Verificación de estado de la API y modelo
-        - `POST /evaluate` — Inferencia individual en vivo (PyTorch)
-        - `POST /batch` — Procesamiento por lotes de CSV/Excel con throughput
-        - `GET /metrics` — Métricas de precisión, recall, F1 y monto en riesgo
-        - `GET /logs` — Consulta remota de logs de auditoría
-
-        Para iniciar el servidor API de FastAPI:
-        ```bash
-        uvicorn src.api:app --host 0.0.0.0 --port 8000 --reload
-        ```
-        """)
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -1231,6 +1409,12 @@ elif st.session_state.rol == "Negocio":
         # mostrar en pantalla, con emojis y monto formateado como texto.
         df_screen = df_result.copy()
 
+        # Motivo en lenguaje simple (calculado ANTES de formatear monto/estado
+        # para pantalla, usando los valores numéricos reales)
+        motivo_rosita = df_result.apply(lambda r: explicar_anomalia(r, estilo="negocio"), axis=1)
+        df_result["motivo"] = motivo_rosita.values
+        df_screen["motivo"] = motivo_rosita.values
+
         # Mapear etiquetas amigables (solo en pantalla)
         df_screen["estado"] = df_screen["estado"].map(
             {"normal": "✅ Normal", "media": "⚠️ Alerta Media", "alta": "🚨 Alerta Alta"})
@@ -1270,6 +1454,7 @@ elif st.session_state.rol == "Negocio":
             "cajero": "Cajero", "mesa": "Mesa", "monto": "Monto ($)",
             "descuento_pct": "Descuento (%)", "metodo_pago": "Método de Pago",
             "tipo_transaccion": "Tipo de Transacción", "estado": "Severidad",
+            "motivo": "Motivo",
         }
 
         # Hoja 1: reporte completo (valores reales, no texto formateado)
