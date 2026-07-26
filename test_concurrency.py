@@ -8,6 +8,7 @@ import sys
 import time
 import random
 import concurrent.futures
+import psutil
 
 # Configurar stdout para evitar UnicodeEncodeError en consola Windows CP1252
 if hasattr(sys.stdout, "reconfigure"):
@@ -55,6 +56,10 @@ def main():
     load_artifacts()
     print("[OK] Artefactos PyTorch + Scikit-Learn cargados correctamente.")
 
+    proceso = psutil.Process()
+    proceso.cpu_percent(interval=None)  # reinicia el contador de % CPU
+    ram_antes_mb = proceso.memory_info().rss / (1024 * 1024)
+
     # 2. Ejecución concurrente con ThreadPoolExecutor
     start_time = time.perf_counter()
     all_results = []
@@ -69,6 +74,8 @@ def main():
                 print(f"[ERROR] Error en hilo de usuario: {e}")
 
     total_time = time.perf_counter() - start_time
+    cpu_percent_test = proceso.cpu_percent(interval=None)
+    ram_despues_mb = proceso.memory_info().rss / (1024 * 1024)
     total_tx = len(all_results)
     avg_latency = sum(r["latency"] for r in all_results) / max(total_tx, 1)
     throughput = total_tx / max(total_time, 0.001)
@@ -81,15 +88,18 @@ def main():
     print(f"* Tiempo total transcurrido     : {total_time:.4f} segundos")
     print(f"* Latencia promedio             : {avg_latency * 1000:.2f} ms por transaccion")
     print(f"* Throughput                    : {throughput:.2f} transacciones / segundo")
+    print(f"* CPU usado durante la prueba    : {cpu_percent_test:.1f} %")
+    print(f"* RAM del proceso (antes -> despues): {ram_antes_mb:.1f} MB -> {ram_despues_mb:.1f} MB")
     print(f"* Estado del sistema            : [OK] ESTABLE (0 errores, thread-safe)")
     print("=" * 65)
 
     log_info(
         "CONCURRENCY_TEST_PASSED",
-        f"users={NUM_USERS}, total_tx={total_tx}, time={total_time:.4f}s, throughput={throughput:.2f}tx/s"
+        f"users={NUM_USERS}, total_tx={total_tx}, time={total_time:.4f}s, "
+        f"throughput={throughput:.2f}tx/s, cpu_percent={cpu_percent_test:.1f}, "
+        f"memoria_mb={ram_despues_mb:.1f}"
     )
 
 
 if __name__ == "__main__":
     main()
-

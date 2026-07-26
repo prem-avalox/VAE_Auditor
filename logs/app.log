@@ -521,3 +521,37 @@
 [2026-07-25 20:34:36] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
 [2026-07-25 20:34:44] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.016645s, latencia=0.000003s, throughput=297867.23 trans/s
 [2026-07-25 20:35:04] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=normal, rec_error=0.041647, latencia=0.024978s
+[2026-07-26 18:19:58] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.419744, latencia=0.205029s, cpu_percent=99.1, memoria_mb=348.9
+[2026-07-26 18:19:58] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.577732, latencia=0.202028s, cpu_percent=100.5, memoria_mb=348.9
+[2026-07-26 18:19:58] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.462167, latencia=0.213179s, cpu_percent=102.6, memoria_mb=348.9
+[2026-07-26 18:19:58] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.349227, latencia=0.054183s, cpu_percent=115.3, memoria_mb=348.9
+[2026-07-26 18:19:58] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.353331, latencia=0.056818s, cpu_percent=110.0, memoria_mb=348.9
+[2026-07-26 18:19:58] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.554733, latencia=0.050623s, cpu_percent=92.6, memoria_mb=348.9
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.451724, latencia=0.054160s, cpu_percent=115.4, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.469545, latencia=0.054066s, cpu_percent=86.7, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.574509, latencia=0.054164s, cpu_percent=86.5, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.206051, latencia=0.050461s, cpu_percent=92.9, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.520436, latencia=0.060819s, cpu_percent=102.8, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.352565, latencia=0.061328s, cpu_percent=101.9, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.510499, latencia=0.054707s, cpu_percent=142.8, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.343526, latencia=0.048310s, cpu_percent=97.0, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.819907, latencia=0.055173s, cpu_percent=141.6, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.374131, latencia=0.074743s, cpu_percent=83.6, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.132830, latencia=0.075213s, cpu_percent=83.1, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.397600, latencia=0.074806s, cpu_percent=83.5, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=2.878339, latencia=0.068335s, cpu_percent=68.6, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.484359, latencia=0.068189s, cpu_percent=68.7, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.177436, latencia=0.065885s, cpu_percent=71.1, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.316190, latencia=0.061469s, cpu_percent=101.7, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.457145, latencia=0.061872s, cpu_percent=101.0, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.542613, latencia=0.064432s, cpu_percent=97.0, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=1.982385, latencia=0.058580s, cpu_percent=80.0, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.421315, latencia=0.060115s, cpu_percent=78.0, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.636024, latencia=0.059301s, cpu_percent=79.0, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.812189, latencia=0.059946s, cpu_percent=104.2, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.305556, latencia=0.048458s, cpu_percent=96.7, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=alta, rec_error=0.295553, latencia=0.063664s, cpu_percent=98.2, memoria_mb=349.0
+[2026-07-26 18:19:59] [INFO] [CONCURRENCY_TEST_PASSED] users=3, total_tx=30, time=0.8771s, throughput=34.20tx/s, cpu_percent=89.1, memoria_mb=348.9
+[2026-07-26 18:21:36] [INFO] [LOGIN_OK] usuario=tecnico, rol=Técnico
+[2026-07-26 18:21:46] [INFO] [REAL_BATCH_PROCESSED] transacciones=4958, tiempo_total=0.196175s, latencia=0.000040s, throughput=25273.40 trans/s, cpu_percent=71.7, memoria_mb=418.1
+[2026-07-26 18:22:04] [INFO] [REAL_TRANSACTION_EVALUATED] severidad=normal, rec_error=0.041647, latencia=0.041307s, cpu_percent=75.6, memoria_mb=441.7

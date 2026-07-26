@@ -286,7 +286,9 @@ def evaluate_raw_transaction(tx_dict: dict):
 
         log_info(
             "REAL_TRANSACTION_EVALUATED",
-            f"severidad={resultado['severidad']}, rec_error={rec_error:.6f}, latencia={performance.latency:.6f}s"
+            f"severidad={resultado['severidad']}, rec_error={rec_error:.6f}, "
+            f"latencia={performance.latency:.6f}s, cpu_percent={performance.cpu_percent:.1f}, "
+            f"memoria_mb={performance.memory_mb:.1f}"
         )
 
         return resultado, performance
@@ -355,7 +357,8 @@ def process_raw_batch(df: pd.DataFrame):
         log_info(
             "REAL_BATCH_PROCESSED",
             f"transacciones={total}, tiempo_total={performance.total_time:.6f}s, "
-            f"latencia={performance.latency:.6f}s, throughput={performance.throughput:.2f} trans/s"
+            f"latencia={performance.latency:.6f}s, throughput={performance.throughput:.2f} trans/s, "
+            f"cpu_percent={performance.cpu_percent:.1f}, memoria_mb={performance.memory_mb:.1f}"
         )
 
         return processed_df, performance

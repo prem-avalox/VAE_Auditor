@@ -197,8 +197,9 @@ def parse_log_lines(lines):
     """
     Convierte líneas crudas de logs/app.log (formato
     "[fecha] [NIVEL] [EVENTO] campo=valor, campo=valor") en un DataFrame
-    con columnas: timestamp, level, event, latencia_ms, throughput.
-    Líneas que no calzan con el formato esperado se ignoran.
+    con columnas: timestamp, level, event, latencia_ms, throughput,
+    cpu_percent, memoria_mb. Líneas que no calzan con el formato esperado
+    se ignoran.
     """
     rows = []
     for line in lines:
@@ -214,8 +215,13 @@ def parse_log_lines(lines):
             "latencia_ms": fields.get("latencia", None) * 1000
                            if "latencia" in fields else None,
             "throughput": fields.get("throughput", None),
+            "cpu_percent": fields.get("cpu_percent", None),
+            "memoria_mb": fields.get("memoria_mb", None),
         })
-    return pd.DataFrame(rows, columns=["timestamp", "level", "event", "latencia_ms", "throughput"])
+    return pd.DataFrame(rows, columns=[
+        "timestamp", "level", "event", "latencia_ms", "throughput",
+        "cpu_percent", "memoria_mb",
+    ])
 
 
 def build_styled_excel_bytes(sheets):  # pylint: disable=too-many-locals,too-many-statements
@@ -1157,6 +1163,18 @@ if st.session_state.rol == "Técnico":
                 "Latencia promedio",
                 f"{df_real['latencia_ms'].dropna().mean():.3f} ms"
                 if df_real["latencia_ms"].notna().any() else "—",
+            )
+
+            lk5, lk6 = st.columns(2)
+            lk5.metric(
+                "CPU promedio (proceso)",
+                f"{df_real['cpu_percent'].dropna().mean():.1f} %"
+                if df_real["cpu_percent"].notna().any() else "—",
+            )
+            lk6.metric(
+                "RAM promedio (proceso)",
+                f"{df_real['memoria_mb'].dropna().mean():,.1f} MB"
+                if df_real["memoria_mb"].notna().any() else "—",
             )
 
             if len(df_perf) >= 2:
